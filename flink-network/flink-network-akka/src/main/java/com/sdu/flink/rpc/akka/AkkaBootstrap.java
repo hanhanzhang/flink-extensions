@@ -17,25 +17,27 @@ import java.util.concurrent.CompletableFuture;
  *
  *  RpcGateway提供获取其代理的RpcEndpoint的地址
  *
- * 2: RpcEndpoint
+ * 2: RpcEndpoint / FencedRpcEndpoint
  *
  *  RpcEndpoint是对RPC框架提供具体服务的实体的抽象, 所有提供远程调用方法的组件都必须继承该类.
  *
- *  同一个RpcEndpoint的所有RPC调用都运行在同一个线程中, 故无并发执行的线程安全问题.
- *
- * 3: FencedRpcEndpoint
- *
  *  FencedRpcEndpoint在调用RPC方法时携带token信息, 只有当调用方提供了token和endpoint的token一致时才允许调用.
  *
- * 4: RpcServer
+ *  同一个RpcEndpoint的所有RPC调用都运行在同一个线程中, 故无并发执行的线程安全问题.
+ *
+ * 3: RpcServer
  *
  *  RpcServer是RpcEndpoint自身代理的对象(self gateway). RpcServer是RpcService.startServer()返回的RpcEndpoint的代理对象.
  *
  *  每个RpcEndpoint有属性RpcServer, 通过 getSelfGateway() 获取自身的代理.
  *
- * 5: RpcService
+ * 4: RpcService
  *
  *
+ *
+ * 5: AkkaRpcActor / FencedAkkaRpcActor
+ *
+ *   Akka消息处理组件, 接收到的消息交给 RpcEndpoint / FencedRpcEndpoint 处理.
  *
  * @author hanhan.zhang
  * */
