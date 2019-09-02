@@ -1,6 +1,6 @@
-package com.sdu.blink.sql.sink;
+package com.sdu.flink.sink;
 
-import com.sdu.blink.sql.SqlUtils;
+import com.sdu.flink.utils.SqlUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;

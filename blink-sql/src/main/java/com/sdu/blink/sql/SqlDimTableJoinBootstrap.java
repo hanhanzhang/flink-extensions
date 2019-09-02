@@ -1,6 +1,7 @@
 package com.sdu.blink.sql;
 
-import com.sdu.blink.sql.sink.SimplePrintAppendSink;
+import com.sdu.flink.sink.SimplePrintAppendSink;
+import com.sdu.flink.utils.SqlUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DataTypes;
@@ -22,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 流表关联
+ *
  * @author hanhan.zhang
  * */
 public class SqlDimTableJoinBootstrap {

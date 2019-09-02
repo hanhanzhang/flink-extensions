@@ -1,4 +1,4 @@
-package com.sdu.blink.sql;
+package com.sdu.flink.utils;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;

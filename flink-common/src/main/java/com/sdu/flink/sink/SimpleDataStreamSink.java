@@ -1,4 +1,4 @@
-package com.sdu.blink.sql.sink;
+package com.sdu.flink.sink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;

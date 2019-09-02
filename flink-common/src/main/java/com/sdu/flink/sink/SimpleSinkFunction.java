@@ -1,4 +1,4 @@
-package com.sdu.blink.sql.sink;
+package com.sdu.flink.sink;
 
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.types.Row;
