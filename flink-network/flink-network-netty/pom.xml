@@ -12,4 +12,12 @@
     <artifactId>flink-network-netty</artifactId>
 
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime_2.12</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+    </dependencies>
+
 </project>
