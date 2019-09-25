@@ -9,12 +9,17 @@ import static com.sdu.flink.network.Constants.TASK_EXECUTION_ATTEMPT_1;
 import static com.sdu.flink.network.Constants.TASK_MANAGER_ID_1;
 import static com.sdu.flink.network.Constants.TASK_MANAGER_PORT_1;
 import static com.sdu.flink.network.Constants.TASK_MANAGER_PORT_2;
+import static java.lang.String.format;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
@@ -92,6 +97,9 @@ public class UpTaskManagerBootstrap {
      * */
     resultPartition.setup();
 
+    // 等待下游Task启动完成
+    TimeUnit.SECONDS.sleep(20);
+
     /*
      * 模拟 Task 向下游发送数据
      *
@@ -111,13 +119,18 @@ public class UpTaskManagerBootstrap {
      *    flush()将SubPartitionResult缓存的数据结果发送到下游Task中.
      *
      * **/
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     BufferBuilder bufferBuilder = resultPartition.getBufferBuilder();
     BufferConsumer bufferConsumer = bufferBuilder.createBufferConsumer();
     resultPartition.addBufferConsumer(bufferConsumer, 0);
 
-    bufferBuilder.append(ByteBuffer.wrap("Hello world".getBytes()));
+    String msg = format("message id: %s, Now time: %s\n", UUID.randomUUID().toString(), sdf.format(new Date()));
+    bufferBuilder.append(ByteBuffer.wrap(msg.getBytes()));
+    bufferBuilder.finish();
 
     resultPartition.flush(0);
+
 
     TimeUnit.HOURS.sleep(1);
 

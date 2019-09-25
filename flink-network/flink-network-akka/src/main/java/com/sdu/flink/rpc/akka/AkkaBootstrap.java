@@ -1,14 +1,13 @@
 package com.sdu.flink.rpc.akka;
 
 import akka.actor.ActorSystem;
+import java.util.concurrent.CompletableFuture;
 import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.rpc.RpcEndpoint;
 import org.apache.flink.runtime.rpc.RpcGateway;
 import org.apache.flink.runtime.rpc.RpcService;
 import org.apache.flink.runtime.rpc.akka.AkkaRpcService;
 import org.apache.flink.runtime.rpc.akka.AkkaRpcServiceConfiguration;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Rpc组件概述
@@ -58,9 +57,11 @@ public class AkkaBootstrap {
 			super(rpcService, endpointId);
 		}
 
+		@Override
 		public long serverClock() {
 			return System.currentTimeMillis();
 		}
+
 	}
 
 	public static void main(String[] args) throws Exception {

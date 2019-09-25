@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
@@ -22,6 +23,7 @@ import org.apache.flink.runtime.io.network.ConnectionID;
 import org.apache.flink.runtime.io.network.NettyShuffleEnvironment;
 import org.apache.flink.runtime.io.network.partition.PartitionProducerStateProvider;
 import org.apache.flink.runtime.io.network.partition.ResultPartitionType;
+import org.apache.flink.runtime.io.network.partition.consumer.BufferOrEvent;
 import org.apache.flink.runtime.io.network.partition.consumer.InputGate;
 import org.apache.flink.runtime.io.network.partition.consumer.SingleInputGate;
 import org.apache.flink.runtime.shuffle.NettyShuffleDescriptor;
@@ -29,6 +31,7 @@ import org.apache.flink.runtime.shuffle.NettyShuffleDescriptor.NetworkPartitionC
 import org.apache.flink.runtime.shuffle.ShuffleDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleEnvironmentContext;
 import org.apache.flink.runtime.shuffle.ShuffleIOOwnerContext;
+import org.apache.flink.shaded.netty4.io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +91,17 @@ public class DownTaskManagerBootstrap {
      *
      * **/
     inputGate.setup();
+
+    Optional<BufferOrEvent> bufferOrEvent = inputGate.getNext();
+
+    if (bufferOrEvent.isPresent()) {
+      BufferOrEvent be = bufferOrEvent.get();
+      assert be.isBuffer();
+      ByteBuf buffer = be.getBuffer().asByteBuf();
+      byte[] bytes = new byte[buffer.readableBytes()];
+      buffer.readBytes(bytes);
+      LOGGER.info("Received message: {}", new String(bytes));
+    }
 
     TimeUnit.HOURS.sleep(1);
   }

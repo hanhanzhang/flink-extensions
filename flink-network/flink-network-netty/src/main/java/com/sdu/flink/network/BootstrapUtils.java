@@ -11,6 +11,8 @@ import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.DATA
 import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_MEMORY_FRACTION;
 import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_MEMORY_MAX;
 import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_MEMORY_MIN;
+import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_PER_CHANNEL;
+import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETWORK_EXTRA_BUFFERS_PER_GATE;
 import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NUM_THREADS_CLIENT;
 import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.TRANSPORT_TYPE;
 import static org.apache.flink.configuration.TaskManagerOptions.MANAGED_MEMORY_SIZE;
@@ -64,6 +66,11 @@ class BootstrapUtils {
     config.setString(MEMORY_SEGMENT_SIZE, "32m");
     config.setString(NETWORK_BUFFERS_MEMORY_MIN, "512m");
     config.setString(NETWORK_BUFFERS_MEMORY_MAX, "1024m");
+    // ResultPartition / InputChannel 默认分配2个Segment, 设置的值如果比较小, 容易造成反压
+    config.setInteger(NETWORK_BUFFERS_PER_CHANNEL, 5);
+    // ResultPartition / InputChannel 默认分配8个浮动的Segment资源
+    config.setInteger(NETWORK_EXTRA_BUFFERS_PER_GATE, 10);
+
 
     // IO模型: nio, epoll
     config.setString(TRANSPORT_TYPE, "nio");
@@ -116,7 +123,9 @@ class BootstrapUtils {
      *
      * 3: NetworkBufferPool
      *
-     *    Network MemorySegment 资源池
+     *    Network MemorySegment 资源池, TaskManager中的所有Task共享, 每个Task分配固定Segment资源池(LocalBufferPool).
+     *
+     *
      *
      * 4: ResultPartitionFactory
      *
