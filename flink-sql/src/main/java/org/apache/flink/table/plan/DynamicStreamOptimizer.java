@@ -31,7 +31,7 @@ public class DynamicStreamOptimizer extends StreamOptimizer {
 //        DataStreamGroupAggregateRule.INSTANCE(),
 //        DataStreamOverAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowAggregateRule.INSTANCE(),
-//        DynamicDataStreamCalcRule.INSTANCE,
+        DynamicDataStreamCalcRule.INSTANCE,
 //        DataStreamScanRule.INSTANCE(),
 //        DataStreamUnionRule.INSTANCE(),
 //        DataStreamValuesRule.INSTANCE(),
@@ -39,22 +39,11 @@ public class DynamicStreamOptimizer extends StreamOptimizer {
 //        DataStreamWindowJoinRule.INSTANCE(),
 //        DataStreamJoinRule.INSTANCE(),
 //        DataStreamTemporalTableJoinRule.INSTANCE(),
-        DynamicStreamTableSourceScanRule.INSTANCE,
-        DynamicDataStreamCalcRule.INSTANCE
+        DynamicStreamTableSourceScanRule.INSTANCE
 //        DataStreamMatchRule.INSTANCE(),
 //        DataStreamTableAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowTableAggregateRule.INSTANCE()
     );
-  }
-
-  @Override
-  public RelNode optimizePhysicalPlan(RelNode relNode, Convention convention) {
-//    return super.optimizePhysicalPlan(relNode, convention);
-    return runHepPlannerSequentially(
-        HepMatchOrder.TOP_DOWN,
-        getBuiltInPhysicalOptRuleSet(),
-        relNode,
-        relNode.getTraitSet());
   }
 
   @Override

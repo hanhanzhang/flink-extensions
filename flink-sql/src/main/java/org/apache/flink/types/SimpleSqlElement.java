@@ -30,6 +30,12 @@ public class SimpleSqlElement implements DSqlElement {
     return new SimpleSqlElement(selectFields);
   }
 
+  public static SimpleSqlElement copy(String[] selectFields) {
+    String[] newSelectFields = new String[selectFields.length];
+    System.arraycopy(selectFields, 0, newSelectFields, 0, selectFields.length);
+    return new SimpleSqlElement(newSelectFields);
+  }
+
   public static SimpleSqlElement ofElement(Map<String, String> fieldValues) {
     return new SimpleSqlElement(fieldValues);
   }

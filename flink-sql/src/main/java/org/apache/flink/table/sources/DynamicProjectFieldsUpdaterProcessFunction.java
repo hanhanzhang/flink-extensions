@@ -55,8 +55,7 @@ public class DynamicProjectFieldsUpdaterProcessFunction extends BroadcastProcess
       BroadcastState<Void, String[]> broadcastState = ctx.getBroadcastState(projectSchemaStateDescriptor);
       broadcastState.put(null, value.getSelectFields());
 
-      // TODO: 不必告知下游, 目前支持动态sql较弱.
-      out.collect(value);
+      out.collect(SimpleSqlElement.copy(value.getSelectFields()));
     }
   }
 

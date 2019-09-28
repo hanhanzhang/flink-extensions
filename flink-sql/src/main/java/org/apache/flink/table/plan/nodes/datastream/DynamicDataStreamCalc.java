@@ -27,8 +27,11 @@ public class DynamicDataStreamCalc extends Calc implements DynamicDataStreamRel 
   }
 
   @Override
-  public Calc copy(RelTraitSet relTraitSet, RelNode relNode, RexProgram rexProgram) {
-    return null;
+  public Calc copy(RelTraitSet relTraitSet, RelNode child, RexProgram rexProgram) {
+    return new DynamicDataStreamCalc(getCluster(),
+        relTraitSet,
+        child,
+        rexProgram);
   }
 
   @Override

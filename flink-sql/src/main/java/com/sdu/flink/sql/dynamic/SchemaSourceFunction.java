@@ -22,14 +22,15 @@ public class SchemaSourceFunction implements SourceFunction<SimpleSqlElement> {
   public void run(SourceContext<SimpleSqlElement> ctx) throws Exception {
     // TODO: 测试
     String[] fields = new String[] {"uid", "action", "timestamp"};
-    Random random = new Random();
+    int end = -1;
 
     while (running) {
       boolean shouldUpdate = System.currentTimeMillis() - lastCheckTimestamp >= interval;
       if (shouldUpdate) {
-        int end = random.nextInt(fields.length);
-        String[] selectFields = new String[end + 1];
-        for (int i = 0; i <= end; ++i) {
+        end += 1;
+        int len = end % fields.length;
+        String[] selectFields = new String[len + 1];
+        for (int i = 0; i <= len; ++i) {
           selectFields[i] = fields[i];
         }
         ctx.collect(SimpleSqlElement.ofSchema(selectFields));

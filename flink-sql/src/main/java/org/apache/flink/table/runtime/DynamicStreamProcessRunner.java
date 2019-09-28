@@ -18,7 +18,7 @@ public class DynamicStreamProcessRunner extends ProcessFunction<SimpleSqlElement
 
   public DynamicStreamProcessRunner(List<Exepression> projectExpression) {
     columnToTypes = projectExpression.stream()
-        .collect(Collectors.toMap(Exepression::getFieldName, Exepression::getType));
+        .collect(Collectors.toConcurrentMap(Exepression::getFieldName, Exepression::getType));
   }
 
 

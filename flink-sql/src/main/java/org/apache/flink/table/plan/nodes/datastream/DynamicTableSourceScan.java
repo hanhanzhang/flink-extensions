@@ -4,6 +4,7 @@ import java.util.List;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -47,8 +48,19 @@ public class DynamicTableSourceScan extends PhysicalTableSourceScan implements D
   }
 
   @Override
+  public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
+    return new DynamicTableSourceScan(
+        getCluster(),
+        traitSet,
+        getTable(),
+        tableSource,
+        selectedFields());
+  }
+
+  @Override
   public PhysicalTableSourceScan copy(RelTraitSet traitSet, TableSource<?> tableSource) {
-    return null;
+    return new DynamicTableSourceScan(
+        getCluster(), traitSet, getTable(), (DynamicStreamTableSource) tableSource, selectedFields());
   }
 
   @Override
