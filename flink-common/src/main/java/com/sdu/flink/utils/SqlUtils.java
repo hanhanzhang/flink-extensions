@@ -18,17 +18,6 @@ public class SqlUtils {
   private SqlUtils() {
   }
 
-  public static DynamicRowTypeInfo createDynamicRowType(TableSchema tableSchema, Map<String, Integer> nameToIndex,
-      String[] selectNames) {
-    TypeInformation<?>[] selectNameTypes = new TypeInformation<?>[selectNames.length];
-
-    // TODO: 2019-09-25
-    selectNameTypes[0] = Types.STRING;
-    selectNameTypes[1] = Types.STRING;
-
-    return new DynamicRowTypeInfo(selectNameTypes, selectNames);
-  }
-
   public static TypeInformation<Row> createRowType(TableSchema tableSchema, Map<String, Integer> nameToIndex,
       String[] selectNames) {
     return createTableSchema(tableSchema, nameToIndex, selectNames).toRowType();
