@@ -56,6 +56,7 @@ public class DynamicProjectFieldsUpdaterProcessFunction extends BroadcastProcess
       broadcastState.put(null, value.getSelectFields());
 
       // TODO: 不必告知下游, 目前支持动态sql较弱.
+      out.collect(value);
     }
   }
 

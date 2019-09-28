@@ -2,6 +2,7 @@ package org.apache.flink.table.plan;
 
 import static org.apache.flink.table.plan.nodes.DynamicFlinkConventions.DYNAMIC_DATA_STREAM;
 
+import org.apache.calcite.plan.Convention;
 import org.apache.calcite.plan.hep.HepMatchOrder;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.sql2rel.RelDecorrelator;
@@ -10,8 +11,6 @@ import org.apache.calcite.tools.RuleSet;
 import org.apache.calcite.tools.RuleSets;
 import org.apache.flink.table.calcite.CalciteConfig;
 import org.apache.flink.table.calcite.RelTimeIndicatorConverter;
-import org.apache.flink.table.plan.nodes.FlinkConventions;
-import org.apache.flink.table.plan.nodes.datastream.UpdateAsRetractionTrait;
 import org.apache.flink.table.plan.rules.DynamicDataStreamCalcRule;
 import org.apache.flink.table.plan.rules.DynamicStreamTableSourceScanRule;
 import org.apache.flink.table.planner.PlanningConfigurationBuilder;
@@ -32,7 +31,7 @@ public class DynamicStreamOptimizer extends StreamOptimizer {
 //        DataStreamGroupAggregateRule.INSTANCE(),
 //        DataStreamOverAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowAggregateRule.INSTANCE(),
-        DynamicDataStreamCalcRule.INSTANCE,
+//        DynamicDataStreamCalcRule.INSTANCE,
 //        DataStreamScanRule.INSTANCE(),
 //        DataStreamUnionRule.INSTANCE(),
 //        DataStreamValuesRule.INSTANCE(),
@@ -40,11 +39,22 @@ public class DynamicStreamOptimizer extends StreamOptimizer {
 //        DataStreamWindowJoinRule.INSTANCE(),
 //        DataStreamJoinRule.INSTANCE(),
 //        DataStreamTemporalTableJoinRule.INSTANCE(),
-        DynamicStreamTableSourceScanRule.INSTANCE
+        DynamicStreamTableSourceScanRule.INSTANCE,
+        DynamicDataStreamCalcRule.INSTANCE
 //        DataStreamMatchRule.INSTANCE(),
 //        DataStreamTableAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowTableAggregateRule.INSTANCE()
     );
+  }
+
+  @Override
+  public RelNode optimizePhysicalPlan(RelNode relNode, Convention convention) {
+//    return super.optimizePhysicalPlan(relNode, convention);
+    return runHepPlannerSequentially(
+        HepMatchOrder.TOP_DOWN,
+        getBuiltInPhysicalOptRuleSet(),
+        relNode,
+        relNode.getTraitSet());
   }
 
   @Override
@@ -57,26 +67,9 @@ public class DynamicStreamOptimizer extends StreamOptimizer {
     RelNode normalizedPlan = optimizeNormalizeLogicalPlan(planWithMaterializedTimeAttributes);
     RelNode logicalPlan = optimizeLogicalPlan(normalizedPlan);
 
-    RelNode physicalPlan = optimizePhysicalPlan(logicalPlan, DYNAMIC_DATA_STREAM);
+    return optimizePhysicalPlan(logicalPlan, DYNAMIC_DATA_STREAM);
 
-    return optimizeDecoratePlan(physicalPlan, updatesAsRetraction);
-  }
-
-  private RelNode optimizeDecoratePlan(RelNode relNode, boolean updatesAsRetraction) {
-    RuleSet decoRuleSet = getDecoRuleSet();
-    if (decoRuleSet.iterator().hasNext()) {
-      if (updatesAsRetraction) {
-        relNode = relNode.copy(relNode.getTraitSet().plus(new UpdateAsRetractionTrait(true)),
-            relNode.getInputs());
-      }
-      return runHepPlannerSequentially(
-          HepMatchOrder.BOTTOM_UP,
-          decoRuleSet,
-          relNode,
-          relNode.getTraitSet());
-    }
-
-    return relNode;
+//    return optimizeDecoratePlan(physicalPlan, updatesAsRetraction);
   }
 
 }

@@ -1,5 +1,6 @@
 package org.apache.flink.table.plan.nodes.datastream;
 
+import java.util.List;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
@@ -57,19 +58,10 @@ public class DynamicTableSourceScan extends PhysicalTableSourceScan implements D
     DataStream<SimpleSqlElement> sourceStream = tableSource.getDataStream(tableEnv.getExecutionEnvironment());
     BroadcastStream<SimpleSqlElement> broadcastStream = tableSource.getBroadcastStream(tableEnv.getExecutionEnvironment());
 
-    String[] selectNames;
-    if (selectedFields().isDefined()) {
-      int[] selectedFields = selectedFields().get();
-      selectNames = new String[selectedFields.length];
-      for (int i = 0; i < selectedFields.length; ++i) {
-        selectNames[i] = table.getQualifiedName().get(i);
-      }
-    } else {
-      selectNames = table.getQualifiedName().toArray(new String[table.getQualifiedName().size()]);
-    }
+    List<String> fieldNames = this.deriveRowType().getFieldNames();
 
     return sourceStream.connect(broadcastStream)
-        .process(new DynamicProjectFieldsUpdaterProcessFunction(selectNames))
+        .process(new DynamicProjectFieldsUpdaterProcessFunction(fieldNames.toArray(new String[fieldNames.size()])))
         .returns(TypeInformation.of(SimpleSqlElement.class));
 
   }
