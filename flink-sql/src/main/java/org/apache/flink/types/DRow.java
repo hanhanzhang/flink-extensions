@@ -1,9 +1,9 @@
 package org.apache.flink.types;
 
-public interface DSqlElement {
+public interface DRow {
 
   boolean isSchema();
 
-  boolean isRecord();
+  boolean isRow();
 
 }

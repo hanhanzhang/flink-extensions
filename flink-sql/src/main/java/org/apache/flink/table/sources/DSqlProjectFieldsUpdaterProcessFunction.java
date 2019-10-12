@@ -9,19 +9,19 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 import org.apache.flink.util.Collector;
 
 /**
  * @author hanhan.zhang
  * */
-public class DynamicProjectFieldsUpdaterProcessFunction extends BroadcastProcessFunction<SimpleSqlElement, SimpleSqlElement, SimpleSqlElement> {
+public class DSqlProjectFieldsUpdaterProcessFunction extends BroadcastProcessFunction<CompositeDRow, CompositeDRow, CompositeDRow> {
 
   private transient MapStateDescriptor<Void, String[]> projectSchemaStateDescriptor;
 
   private final String[] selectNames;
 
-  public DynamicProjectFieldsUpdaterProcessFunction(String[] selectNames) {
+  public DSqlProjectFieldsUpdaterProcessFunction(String[] selectNames) {
     this.selectNames = selectNames;
   }
 
@@ -33,8 +33,8 @@ public class DynamicProjectFieldsUpdaterProcessFunction extends BroadcastProcess
 
 
   @Override
-  public void processElement(SimpleSqlElement value, ReadOnlyContext ctx,
-      Collector<SimpleSqlElement> out) throws Exception {
+  public void processElement(CompositeDRow value, ReadOnlyContext ctx,
+      Collector<CompositeDRow> out) throws Exception {
     if (value.isSchema()) {
       return;
     }
@@ -49,22 +49,22 @@ public class DynamicProjectFieldsUpdaterProcessFunction extends BroadcastProcess
   }
 
   @Override
-  public void processBroadcastElement(SimpleSqlElement value, Context ctx,
-      Collector<SimpleSqlElement> out) throws Exception {
+  public void processBroadcastElement(CompositeDRow value, Context ctx,
+      Collector<CompositeDRow> out) throws Exception {
     if (value.isSchema()) {
       BroadcastState<Void, String[]> broadcastState = ctx.getBroadcastState(projectSchemaStateDescriptor);
       broadcastState.put(null, value.getSelectFields());
 
-      out.collect(SimpleSqlElement.copy(value.getSelectFields()));
+      out.collect(CompositeDRow.copy(value.getSelectFields()));
     }
   }
 
-  private static SimpleSqlElement createNewElement(String[] selectNames, SimpleSqlElement value) {
+  private static CompositeDRow createNewElement(String[] selectNames, CompositeDRow value) {
     Map<String, String> newFieldValues = new HashMap<>();
     for (String field : selectNames) {
       newFieldValues.put(field, value.getFieldValues().get(field));
     }
-    return SimpleSqlElement.ofElement(newFieldValues);
+    return CompositeDRow.ofDRow(newFieldValues);
   }
 
 }

@@ -19,27 +19,27 @@ import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.tsextractors.ExistingField;
 import org.apache.flink.table.sources.wmstrategies.BoundedOutOfOrderTimestamps;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 
 /**
  * {@link StreamTableSourceScan}
  *
  * @author hanhan.zhang
  * */
-public class DynamicStreamTableSourceImpl<T> implements DynamicStreamTableSource, DefinedRowtimeAttributes {
+public class DSqlStreamTableSourceImpl<T> implements DynamicStreamTableSource, DefinedRowtimeAttributes {
 
   private final TableSchema tableSchema;
 
   private final SourceFunction<T> sourceFunction;
-  private final MapFunction<T, SimpleSqlElement> mapFunction;
-  private final SourceFunction<SimpleSqlElement> schemaCheckFunction;
+  private final MapFunction<T, CompositeDRow> mapFunction;
+  private final SourceFunction<CompositeDRow> schemaCheckFunction;
 
   private final String eventTimeName;
   private final long lateness;
 
-  public DynamicStreamTableSourceImpl(
-      SourceFunction<T> sourceFunction, MapFunction<T, SimpleSqlElement> mapFunction, TableSchema tableSchema,
-      SourceFunction<SimpleSqlElement> schemaCheckFunction,
+  public DSqlStreamTableSourceImpl(
+      SourceFunction<T> sourceFunction, MapFunction<T, CompositeDRow> mapFunction, TableSchema tableSchema,
+      SourceFunction<CompositeDRow> schemaCheckFunction,
       String eventTimeName, long lateness) {
     this.sourceFunction = sourceFunction;
     this.mapFunction = mapFunction;
@@ -50,19 +50,19 @@ public class DynamicStreamTableSourceImpl<T> implements DynamicStreamTableSource
   }
 
   @Override
-  public BroadcastStream<SimpleSqlElement> getBroadcastStream(StreamExecutionEnvironment execEnv) {
-    DataStream<SimpleSqlElement> schemaUpdateStream = execEnv.addSource(schemaCheckFunction);
-    MapStateDescriptor<Void, SimpleSqlElement> broadcastStateDescriptor = new MapStateDescriptor<>(
-        "BroadcastSqlProjectSchemaState", Types.VOID, TypeInformation.of(SimpleSqlElement.class));
+  public BroadcastStream<CompositeDRow> getBroadcastStream(StreamExecutionEnvironment execEnv) {
+    DataStream<CompositeDRow> schemaUpdateStream = execEnv.addSource(schemaCheckFunction);
+    MapStateDescriptor<Void, CompositeDRow> broadcastStateDescriptor = new MapStateDescriptor<>(
+        "BroadcastSqlProjectSchemaState", Types.VOID, TypeInformation.of(CompositeDRow.class));
     return schemaUpdateStream.broadcast(broadcastStateDescriptor);
   }
 
   @Override
-  public DataStream<SimpleSqlElement> getDataStream(StreamExecutionEnvironment execEnv) {
+  public DataStream<CompositeDRow> getDataStream(StreamExecutionEnvironment execEnv) {
     // TODO: 并发度
     return execEnv.addSource(sourceFunction)
         .map(mapFunction)
-        .returns(TypeInformation.of(SimpleSqlElement.class))
+        .returns(TypeInformation.of(CompositeDRow.class))
         .setParallelism(8);
   }
 

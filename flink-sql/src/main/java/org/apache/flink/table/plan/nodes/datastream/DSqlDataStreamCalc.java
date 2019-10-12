@@ -13,33 +13,33 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
 import org.apache.flink.table.codegen.CodeGeneratorRexVisitor;
-import org.apache.flink.table.delegation.DynamicStreamPlanner;
-import org.apache.flink.table.runtime.DynamicStreamProcessRunner;
+import org.apache.flink.table.delegation.DSqlStreamPlanner;
+import org.apache.flink.table.runtime.DSqlStreamProcessRunner;
 import org.apache.flink.table.runtime.Exepression;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 import scala.Option;
 import scala.collection.Seq;
 
-public class DynamicDataStreamCalc extends Calc implements DynamicDataStreamRel {
+public class DSqlDataStreamCalc extends Calc implements DSqlDataStreamRel {
 
-  public DynamicDataStreamCalc(RelOptCluster cluster, RelTraitSet traits, RelNode input, RexProgram calcProgram) {
+  public DSqlDataStreamCalc(RelOptCluster cluster, RelTraitSet traits, RelNode input, RexProgram calcProgram) {
     super(cluster, traits, input, calcProgram);
   }
 
   @Override
   public Calc copy(RelTraitSet relTraitSet, RelNode child, RexProgram rexProgram) {
-    return new DynamicDataStreamCalc(getCluster(),
+    return new DSqlDataStreamCalc(getCluster(),
         relTraitSet,
         child,
         rexProgram);
   }
 
   @Override
-  public DataStream<SimpleSqlElement> translateToSqlElement(DynamicStreamPlanner tableEnv,
+  public DataStream<CompositeDRow> translateToSqlElement(DSqlStreamPlanner tableEnv,
       StreamQueryConfig queryConfig) {
 
-    DynamicDataStreamRel inputRelNode = (DynamicDataStreamRel) getInput();
-    DataStream<SimpleSqlElement> inputDataStream = inputRelNode.translateToSqlElement(tableEnv, queryConfig);
+    DSqlDataStreamRel inputRelNode = (DSqlDataStreamRel) getInput();
+    DataStream<CompositeDRow> inputDataStream = inputRelNode.translateToSqlElement(tableEnv, queryConfig);
 
     // condition
     if (program.getCondition() != null) {
@@ -63,26 +63,26 @@ public class DynamicDataStreamCalc extends Calc implements DynamicDataStreamRel 
 //      projection.add(exepression);
 //    }
 
-    return inputDataStream.process(new DynamicStreamProcessRunner(projection))
+    return inputDataStream.process(new DSqlStreamProcessRunner(projection))
         .setParallelism(inputDataStream.getParallelism())
-        .returns(TypeInformation.of(SimpleSqlElement.class));
+        .returns(TypeInformation.of(CompositeDRow.class));
 
   }
 
   @Override
   public String getExpressionString(RexNode expr, Seq<String> inFields,
       Option<Seq<RexNode>> localExprsTable) {
-    return DynamicDataStreamRel.super.getExpressionString(expr, inFields, localExprsTable);
+    return DSqlDataStreamRel.super.getExpressionString(expr, inFields, localExprsTable);
   }
 
   @Override
   public double estimateRowSize(RelDataType rowType) {
-    return DynamicDataStreamRel.super.estimateRowSize(rowType);
+    return DSqlDataStreamRel.super.estimateRowSize(rowType);
   }
 
   @Override
   public double estimateDataTypeSize(RelDataType t) {
-    return DynamicDataStreamRel.super.estimateDataTypeSize(t);
+    return DSqlDataStreamRel.super.estimateDataTypeSize(t);
   }
 
 }

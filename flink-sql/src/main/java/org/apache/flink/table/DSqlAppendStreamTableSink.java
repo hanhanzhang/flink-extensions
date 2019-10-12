@@ -4,15 +4,15 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.sinks.AppendStreamTableSink;
 import org.apache.flink.table.sinks.TableSink;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 
-public interface DynamicAppendStreamTableSink extends AppendStreamTableSink<SimpleSqlElement> {
+public interface DSqlAppendStreamTableSink extends AppendStreamTableSink<CompositeDRow> {
 
-  default void emitDataStream(DataStream<SimpleSqlElement> dataStream) {
+  default void emitDataStream(DataStream<CompositeDRow> dataStream) {
 
   }
 
-  default TableSink<SimpleSqlElement> configure(String[] fieldNames,
+  default TableSink<CompositeDRow> configure(String[] fieldNames,
       TypeInformation<?>[] fieldTypes) {
     return null;
   }

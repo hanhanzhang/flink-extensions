@@ -9,14 +9,14 @@ import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
 import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
 import org.apache.flink.shaded.guava18.com.google.common.collect.Sets.SetView;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 import org.apache.flink.util.Collector;
 
-public class DynamicStreamProcessRunner extends ProcessFunction<SimpleSqlElement, SimpleSqlElement> {
+public class DSqlStreamProcessRunner extends ProcessFunction<CompositeDRow, CompositeDRow> {
 
   private final Map<String, RexType> columnToTypes;
 
-  public DynamicStreamProcessRunner(List<Exepression> projectExpression) {
+  public DSqlStreamProcessRunner(List<Exepression> projectExpression) {
     columnToTypes = projectExpression.stream()
         .collect(Collectors.toConcurrentMap(Exepression::getFieldName, Exepression::getType));
   }
@@ -24,7 +24,7 @@ public class DynamicStreamProcessRunner extends ProcessFunction<SimpleSqlElement
 
 
   @Override
-  public void processElement(SimpleSqlElement value, Context ctx, Collector<SimpleSqlElement> out)
+  public void processElement(CompositeDRow value, Context ctx, Collector<CompositeDRow> out)
       throws Exception {
 
     if (value.isSchema()) {
@@ -59,7 +59,7 @@ public class DynamicStreamProcessRunner extends ProcessFunction<SimpleSqlElement
     }
 
     //
-    out.collect(SimpleSqlElement.ofElement(newValues));
+    out.collect(CompositeDRow.ofDRow(newValues));
   }
 
 

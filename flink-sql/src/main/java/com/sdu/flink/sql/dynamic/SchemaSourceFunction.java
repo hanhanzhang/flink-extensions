@@ -1,11 +1,10 @@
 package com.sdu.flink.sql.dynamic;
 
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 
-public class SchemaSourceFunction implements SourceFunction<SimpleSqlElement> {
+public class SchemaSourceFunction implements SourceFunction<CompositeDRow> {
 
   private final long interval;
   private boolean running;
@@ -19,7 +18,7 @@ public class SchemaSourceFunction implements SourceFunction<SimpleSqlElement> {
   }
 
   @Override
-  public void run(SourceContext<SimpleSqlElement> ctx) throws Exception {
+  public void run(SourceContext<CompositeDRow> ctx) throws Exception {
     // TODO: 测试
     String[] fields = new String[] {"uid", "action", "timestamp"};
     int end = -1;
@@ -33,7 +32,7 @@ public class SchemaSourceFunction implements SourceFunction<SimpleSqlElement> {
         for (int i = 0; i <= len; ++i) {
           selectFields[i] = fields[i];
         }
-        ctx.collect(SimpleSqlElement.ofSchema(selectFields));
+        ctx.collect(CompositeDRow.ofSchema(selectFields));
         lastCheckTimestamp = System.currentTimeMillis();
       }
 

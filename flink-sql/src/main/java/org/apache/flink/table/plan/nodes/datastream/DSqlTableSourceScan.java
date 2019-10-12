@@ -11,20 +11,20 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
-import org.apache.flink.table.delegation.DynamicStreamPlanner;
+import org.apache.flink.table.delegation.DSqlStreamPlanner;
 import org.apache.flink.table.plan.nodes.PhysicalTableSourceScan;
-import org.apache.flink.table.sources.DynamicProjectFieldsUpdaterProcessFunction;
+import org.apache.flink.table.sources.DSqlProjectFieldsUpdaterProcessFunction;
 import org.apache.flink.table.sources.DynamicStreamTableSource;
 import org.apache.flink.table.sources.TableSource;
-import org.apache.flink.types.SimpleSqlElement;
+import org.apache.flink.types.CompositeDRow;
 import scala.Option;
 import scala.collection.Seq;
 
-public class DynamicTableSourceScan extends PhysicalTableSourceScan implements DynamicDataStreamRel {
+public class DSqlTableSourceScan extends PhysicalTableSourceScan implements DSqlDataStreamRel {
 
   private DynamicStreamTableSource tableSource;
 
-  public DynamicTableSourceScan(RelOptCluster cluster, RelTraitSet traitSet, RelOptTable table,
+  public DSqlTableSourceScan(RelOptCluster cluster, RelTraitSet traitSet, RelOptTable table,
       DynamicStreamTableSource tableSource, Option<int[]> selectedFields) {
     super(cluster, traitSet, table, tableSource, selectedFields);
 
@@ -34,22 +34,22 @@ public class DynamicTableSourceScan extends PhysicalTableSourceScan implements D
   @Override
   public String getExpressionString(RexNode expr, Seq<String> inFields,
       Option<Seq<RexNode>> localExprsTable) {
-    return DynamicDataStreamRel.super.getExpressionString(expr, inFields, localExprsTable);
+    return DSqlDataStreamRel.super.getExpressionString(expr, inFields, localExprsTable);
   }
 
   @Override
   public double estimateRowSize(RelDataType rowType) {
-    return DynamicDataStreamRel.super.estimateRowSize(rowType);
+    return DSqlDataStreamRel.super.estimateRowSize(rowType);
   }
 
   @Override
   public double estimateDataTypeSize(RelDataType t) {
-    return DynamicDataStreamRel.super.estimateDataTypeSize(t);
+    return DSqlDataStreamRel.super.estimateDataTypeSize(t);
   }
 
   @Override
   public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
-    return new DynamicTableSourceScan(
+    return new DSqlTableSourceScan(
         getCluster(),
         traitSet,
         getTable(),
@@ -59,22 +59,22 @@ public class DynamicTableSourceScan extends PhysicalTableSourceScan implements D
 
   @Override
   public PhysicalTableSourceScan copy(RelTraitSet traitSet, TableSource<?> tableSource) {
-    return new DynamicTableSourceScan(
+    return new DSqlTableSourceScan(
         getCluster(), traitSet, getTable(), (DynamicStreamTableSource) tableSource, selectedFields());
   }
 
   @Override
-  public DataStream<SimpleSqlElement> translateToSqlElement(DynamicStreamPlanner tableEnv,
+  public DataStream<CompositeDRow> translateToSqlElement(DSqlStreamPlanner tableEnv,
       StreamQueryConfig queryConfig) {
 
-    DataStream<SimpleSqlElement> sourceStream = tableSource.getDataStream(tableEnv.getExecutionEnvironment());
-    BroadcastStream<SimpleSqlElement> broadcastStream = tableSource.getBroadcastStream(tableEnv.getExecutionEnvironment());
+    DataStream<CompositeDRow> sourceStream = tableSource.getDataStream(tableEnv.getExecutionEnvironment());
+    BroadcastStream<CompositeDRow> broadcastStream = tableSource.getBroadcastStream(tableEnv.getExecutionEnvironment());
 
     List<String> fieldNames = this.deriveRowType().getFieldNames();
 
     return sourceStream.connect(broadcastStream)
-        .process(new DynamicProjectFieldsUpdaterProcessFunction(fieldNames.toArray(new String[fieldNames.size()])))
-        .returns(TypeInformation.of(SimpleSqlElement.class));
+        .process(new DSqlProjectFieldsUpdaterProcessFunction(fieldNames.toArray(new String[fieldNames.size()])))
+        .returns(TypeInformation.of(CompositeDRow.class));
 
   }
 }

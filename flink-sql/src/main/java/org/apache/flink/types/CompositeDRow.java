@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * @author hanhan.zhang
  * */
-public class SimpleSqlElement implements DSqlElement {
+public class CompositeDRow implements DRow {
 
   private boolean isSchema;
 
@@ -15,29 +15,29 @@ public class SimpleSqlElement implements DSqlElement {
 
   private Map<String, String> fieldValues;
 
-  private SimpleSqlElement(String[] selectFields) {
+  private CompositeDRow(String[] selectFields) {
     this.isSchema = true;
     this.selectFields = selectFields;
   }
 
-  private SimpleSqlElement(Map<String, String> fieldValues) {
+  private CompositeDRow(Map<String, String> fieldValues) {
     this.isSchema = false;
     this.fieldValues = fieldValues;
   }
 
 
-  public static SimpleSqlElement ofSchema(String[] selectFields) {
-    return new SimpleSqlElement(selectFields);
+  public static CompositeDRow ofSchema(String[] selectFields) {
+    return new CompositeDRow(selectFields);
   }
 
-  public static SimpleSqlElement copy(String[] selectFields) {
+  public static CompositeDRow copy(String[] selectFields) {
     String[] newSelectFields = new String[selectFields.length];
     System.arraycopy(selectFields, 0, newSelectFields, 0, selectFields.length);
-    return new SimpleSqlElement(newSelectFields);
+    return new CompositeDRow(newSelectFields);
   }
 
-  public static SimpleSqlElement ofElement(Map<String, String> fieldValues) {
-    return new SimpleSqlElement(fieldValues);
+  public static CompositeDRow ofDRow(Map<String, String> fieldValues) {
+    return new CompositeDRow(fieldValues);
   }
 
 
@@ -47,7 +47,7 @@ public class SimpleSqlElement implements DSqlElement {
   }
 
   @Override
-  public boolean isRecord() {
+  public boolean isRow() {
     return !isSchema;
   }
 
@@ -67,7 +67,7 @@ public class SimpleSqlElement implements DSqlElement {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    SimpleSqlElement that = (SimpleSqlElement) o;
+    CompositeDRow that = (CompositeDRow) o;
     return isSchema == that.isSchema &&
         Arrays.equals(selectFields, that.selectFields) &&
         Objects.equals(fieldValues, that.fieldValues);

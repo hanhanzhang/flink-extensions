@@ -6,7 +6,7 @@ import org.apache.flink.table.api.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.table.catalog.CatalogManager;
 import org.apache.flink.table.catalog.FunctionCatalog;
 import org.apache.flink.table.catalog.GenericInMemoryCatalog;
-import org.apache.flink.table.delegation.DynamicStreamPlanner;
+import org.apache.flink.table.delegation.DSqlStreamPlanner;
 import org.apache.flink.table.delegation.Executor;
 import org.apache.flink.table.delegation.Planner;
 import org.apache.flink.table.executor.StreamExecutor;
@@ -14,9 +14,9 @@ import org.apache.flink.table.executor.StreamExecutor;
 /**
  * @author hanhan.zhang
  */
-public class DynamicTableEnvironmentUtils {
+public class DSqlTableEnvironmentUtils {
 
-  private DynamicTableEnvironmentUtils() {
+  private DSqlTableEnvironmentUtils() {
 
   }
 
@@ -33,7 +33,7 @@ public class DynamicTableEnvironmentUtils {
 
     TableConfig tableConfig = new TableConfig();
 
-    Planner planner = new DynamicStreamPlanner(executor, tableConfig, functionCatalog, catalogManager);
+    Planner planner = new DSqlStreamPlanner(executor, tableConfig, functionCatalog, catalogManager);
 
     return new StreamTableEnvironmentImpl(
         catalogManager,
