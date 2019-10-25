@@ -2,7 +2,8 @@ package org.apache.flink.types;
 
 import com.sdu.flink.utils.JsonUtils;
 import java.io.Serializable;
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import org.apache.flink.annotation.Internal;
 
@@ -10,23 +11,23 @@ import org.apache.flink.annotation.Internal;
 @Data
 public class DSchemaTuple implements Serializable {
 
-  private final EnumMap<DSchemaType, String> schemaRecords;
+  private final Map<DSchemaType, String> schemaRecords;
 
   public DSchemaTuple() {
-    schemaRecords = new EnumMap<>(DSchemaType.class);
+    schemaRecords = new HashMap<>();
   }
 
-  public void addProjectSchema(DProjectSchema projectSchema) {
+  public void addProjectSchema(DProjectSchemaData projectSchema) {
     schemaRecords.put(DSchemaType.PROJECT, JsonUtils.toJson(projectSchema));
   }
 
-  public DProjectSchema getProjectSchema() {
+  public DProjectSchemaData getProjectSchema() {
     String projectSchemaData = schemaRecords.get(DSchemaType.PROJECT);
     if (projectSchemaData == null) {
       return null;
     }
 
-    return JsonUtils.fromJson(projectSchemaData, DProjectSchema.class);
+    return JsonUtils.fromJson(projectSchemaData, DProjectSchemaData.class);
   }
 
 

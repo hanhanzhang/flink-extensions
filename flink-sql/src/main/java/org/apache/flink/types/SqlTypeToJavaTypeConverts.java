@@ -37,7 +37,6 @@ public class SqlTypeToJavaTypeConverts {
       .build();
 
   private SqlTypeToJavaTypeConverts() {
-
   }
 
   public static Class<?> sqlTypeToJavaType(SqlTypeName sqlTypeName) {
@@ -46,6 +45,10 @@ public class SqlTypeToJavaTypeConverts {
       throw new UnsupportedSqlJavaTypeException(sqlTypeName);
     }
     return javaType;
+  }
+
+  public static String sqlTypeToJavaTypeAsString(SqlTypeName sqlTypeName) {
+    return sqlTypeToJavaType(sqlTypeName).getSimpleName();
   }
 
 }

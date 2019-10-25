@@ -11,7 +11,7 @@ import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
-import org.apache.flink.types.DProjectSchema;
+import org.apache.flink.types.DProjectSchemaData;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
@@ -55,10 +55,10 @@ public class DProjectFieldsSelectProcessFunction extends
   public void processBroadcastElement(DSchemaTuple schemaTuple, Context ctx,
       Collector<DStreamRecord> out) throws Exception {
     // TableScan负责更新映射字段
-    DProjectSchema projectSchema = schemaTuple.getProjectSchema();
-    if (projectSchema != null && isNotEmpty(projectSchema.getProjectNameToTypes())) {
+    DProjectSchemaData projectSchema = schemaTuple.getProjectSchema();
+    if (projectSchema != null && isNotEmpty(projectSchema.getInputProjectNameToTypes())) {
         BroadcastState<Void, Map<String, String>> broadcastState = ctx.getBroadcastState(projectFieldStateDesc);
-        broadcastState.put(null, projectSchema.getProjectNameToTypes());
+        broadcastState.put(null, projectSchema.getInputProjectNameToTypes());
     }
 
     out.collect(new DStreamRecord(schemaTuple));

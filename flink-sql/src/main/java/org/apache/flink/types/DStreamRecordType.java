@@ -5,6 +5,6 @@ import org.apache.flink.annotation.Internal;
 @Internal
 public enum DStreamRecordType {
 
-  SCHEMA, RECORD;
+  SCHEMA, RECORD
 
 }

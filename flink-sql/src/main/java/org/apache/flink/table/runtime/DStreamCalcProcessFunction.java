@@ -1,10 +1,14 @@
 package org.apache.flink.table.runtime;
 
+import static org.apache.flink.types.SqlTypeToJavaTypeConverts.sqlTypeToJavaTypeAsString;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.table.codegen.DProjectFieldDExpression;
 import org.apache.flink.types.DConditionSchema;
-import org.apache.flink.types.DProjectSchema;
+import org.apache.flink.types.DProjectSchemaData;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
@@ -45,8 +49,19 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     // 过滤数据(Where条件)
 
     // 映射字段
+    // TODO: DProjectFunctionExpression 起别名问题, 下游也应该跟着改
+    Map<String, String> recordTypes = new HashMap<>();
+    Map<String, String> recordValues = new HashMap<>();
+    for (DProjectFieldDExpression expression : projectFieldExpressions) {
+      String newFieldName = expression.getProjectFieldName();
+      String newFieldType = sqlTypeToJavaTypeAsString(expression.getResultType());
+      recordTypes.put(newFieldName, newFieldType);
 
+      String value = expression.invoke(recordTuple);
+      recordValues.put(newFieldName, value);
+    }
 
+    out.collect(new DStreamRecord(new DRecordTuple(recordTypes, recordValues)));
   }
 
   private void updateSchema(DStreamRecord streamRecord, Collector<DStreamRecord> out) {
@@ -62,9 +77,9 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     DSchemaTuple schemaTuple = streamRecord.schemaTuple();
 
     // 更新映射字段
-    DProjectSchema projectSchema = schemaTuple.getProjectSchema();
+    DProjectSchemaData projectSchema = schemaTuple.getProjectSchema();
     if (projectSchema != null) {
-      // TODO: 2019-10-25
+      // TODO: 2019-10-25 别名处理
     }
 
     // 更新过滤条件

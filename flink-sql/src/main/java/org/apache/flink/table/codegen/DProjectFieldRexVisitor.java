@@ -40,8 +40,11 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
 
   private final List<RelDataTypeField> relFieldDataTypes;
 
-  public DProjectFieldRexVisitor(RelDataType relDataType) {
+  private String projectFieldName;
+
+  public DProjectFieldRexVisitor(RelDataType relDataType, String projectFieldName) {
     relFieldDataTypes = relDataType.getFieldList();
+    this.projectFieldName = projectFieldName;
   }
 
   @Override
@@ -53,7 +56,7 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
 
     RelDataTypeField fieldDataType = relFieldDataTypes.get(index);
 
-    DInputRefDExpressionInvoker expressionInvoker = new DInputRefDExpressionInvoker(fieldDataType.getName(),
+    DSimpleProjectFieldExpressionInvoker expressionInvoker = new DSimpleProjectFieldExpressionInvoker(fieldDataType.getName(),
         fieldDataType.getType().getSqlTypeName());
 
     return new DProjectFieldDExpression(expressionInvoker);
@@ -115,8 +118,9 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
           throw new UserDefineFunctionNotFoundException(parameterClassTypes);
         }
 
-        DFunctionDExpressionInvoker expressionInvoker = new DFunctionDExpressionInvoker(function.getClass().getCanonicalName(),
-            parameterExpressionInvokes, resultType);
+        String className = ssf.getScalarFunction().getClass().getCanonicalName();
+        DProjectFunctionDExpressionInvoker expressionInvoker = new DProjectFunctionDExpressionInvoker(className,
+            parameterExpressionInvokes, projectFieldName, resultType);
 
         return new DProjectFieldDExpression(expressionInvoker);
       }

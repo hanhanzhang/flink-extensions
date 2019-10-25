@@ -71,7 +71,7 @@ public class DynamicSqlBootstrap {
     tableEnv.registerTableSink("user_behavior", new SimplePrintDTableSink(tableSchema));
 
 
-    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as uid, action FROM user_action where action <> 'Login' and uid <> '1'";
+    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as userId, action FROM user_action where action <> 'Login' and uid <> '1'";
 
     tableEnv.sqlUpdate(sqlText);
 
