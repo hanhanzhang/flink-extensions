@@ -1,6 +1,6 @@
 package org.apache.flink.table.runtime;
 
-import static org.apache.flink.types.SqlTypeToJavaTypeConverts.sqlTypeToJavaTypeAsString;
+import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaTypeAsString;
 
 import java.util.HashMap;
 import java.util.List;

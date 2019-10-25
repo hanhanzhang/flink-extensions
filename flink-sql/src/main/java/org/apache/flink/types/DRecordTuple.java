@@ -40,11 +40,11 @@ public class DRecordTuple implements Serializable {
       String recordValue = recordValues.get(recordName);
 
       if (first) {
-        sb.append(recordName).append(": (").append(recordValue).append(", ").append(recordType).append(")");
+        sb.append(recordName).append(" = [").append(recordValue).append(", ").append(recordType).append("]");
         first = false;
       } else {
         sb.append(", ");
-        sb.append(recordName).append(": (").append(recordValue).append(", ").append(recordType).append(")");
+        sb.append(recordName).append(" = [").append(recordValue).append(", ").append(recordType).append("]");
       }
     }
 

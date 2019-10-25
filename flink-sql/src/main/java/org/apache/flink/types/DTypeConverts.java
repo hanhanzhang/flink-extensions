@@ -10,7 +10,7 @@ import java.util.Map;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.calcite.shaded.com.google.common.collect.ImmutableMap;
 
-public class SqlTypeToJavaTypeConverts {
+public class DTypeConverts {
 
   private static Map<SqlTypeName, Class<?>> SqlTypeToJavaTypes = ImmutableMap.<SqlTypeName, Class<?>>builder()
       .put(SqlTypeName.BOOLEAN, Boolean.class)
@@ -36,7 +36,7 @@ public class SqlTypeToJavaTypeConverts {
 
       .build();
 
-  private SqlTypeToJavaTypeConverts() {
+  private DTypeConverts() {
   }
 
   public static Class<?> sqlTypeToJavaType(SqlTypeName sqlTypeName) {

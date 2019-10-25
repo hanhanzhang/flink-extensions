@@ -1,6 +1,6 @@
 package org.apache.flink.table.codegen;
 
-import static org.apache.flink.types.SqlTypeToJavaTypeConverts.sqlTypeToJavaType;
+import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaType;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

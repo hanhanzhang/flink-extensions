@@ -1,6 +1,8 @@
 package org.apache.flink.types;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import lombok.Data;
 import org.apache.flink.annotation.Internal;
 
@@ -21,10 +23,14 @@ public class DProjectSchemaData implements DSchemaData {
    * **/
 
   // 节点输入的字段名及类型
-  private final Map<String, DProjectSchema> inputProjectNameToTypes;
+  private final Map<String, DProjectSchema> inputProjectSchemas;
 
-  public DProjectSchemaData(Map<String, String> inputProjectNameToTypes) {
-    throw new RuntimeException();
+  public DProjectSchemaData(Map<String, String> inputProjectSchemas) {
+    this.inputProjectSchemas = new HashMap<>();
+
+    for (Entry<String, String> entry : inputProjectSchemas.entrySet()) {
+      this.inputProjectSchemas.put(entry.getKey(), new DSimpleProjectSchema(entry.getKey(), entry.getValue()));
+    }
   }
 
   @Override

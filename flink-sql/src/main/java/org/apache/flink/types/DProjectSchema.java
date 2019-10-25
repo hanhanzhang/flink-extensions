@@ -1,9 +1,16 @@
 package org.apache.flink.types;
 
-public interface DProjectSchema {
+import lombok.Data;
 
-  String fieldName();
+@Data
+public class DProjectSchema {
 
-  String fileType();
+  private final String fieldName;
+  private final String fieldType;
+
+  DProjectSchema(String fieldName, String fieldType) {
+    this.fieldName = fieldName;
+    this.fieldType = fieldType;
+  }
 
 }

@@ -1,7 +1,5 @@
 package org.apache.flink.table.sources;
 
-import static org.apache.commons.collections.MapUtils.isNotEmpty;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,11 +9,14 @@ import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
+import org.apache.flink.types.DProjectSchema;
 import org.apache.flink.types.DProjectSchemaData;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
+import org.apache.flink.types.DSimpleProjectSchema;
 import org.apache.flink.types.DStreamRecord;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.Preconditions;
 
 /**
  * @author hanhan.zhang
@@ -54,11 +55,23 @@ public class DProjectFieldsSelectProcessFunction extends
   @Override
   public void processBroadcastElement(DSchemaTuple schemaTuple, Context ctx,
       Collector<DStreamRecord> out) throws Exception {
+    BroadcastState<Void, Map<String, String>> broadcastState = ctx.getBroadcastState(projectFieldStateDesc);
+
     // TableScan负责更新映射字段
     DProjectSchemaData projectSchema = schemaTuple.getProjectSchema();
-    if (projectSchema != null && isNotEmpty(projectSchema.getInputProjectNameToTypes())) {
-        BroadcastState<Void, Map<String, String>> broadcastState = ctx.getBroadcastState(projectFieldStateDesc);
-        broadcastState.put(null, projectSchema.getInputProjectNameToTypes());
+    Preconditions.checkNotNull(projectSchema);
+
+    Map<String, DProjectSchema> inputProjectSchemas = projectSchema.getInputProjectSchemas();
+    Map<String, String> fieldNameToTypes = new HashMap<>();
+    for (Entry<String, DProjectSchema> entry : inputProjectSchemas.entrySet()) {
+      DProjectSchema schema = entry.getValue();
+      if (entry.getValue() instanceof DSimpleProjectSchema) {
+        fieldNameToTypes.put(schema.getFieldName(), schema.getFieldType());
+      }
+    }
+
+    if (!fieldNameToTypes.isEmpty()) {
+      broadcastState.put(null, fieldNameToTypes);
     }
 
     out.collect(new DStreamRecord(schemaTuple));
