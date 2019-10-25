@@ -39,10 +39,7 @@ import static org.apache.calcite.sql.fun.SqlStdOperatorTable.ROW;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.UNARY_MINUS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.UNARY_PLUS;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexCorrelVariable;
 import org.apache.calcite.rex.RexDynamicParam;
@@ -57,44 +54,32 @@ import org.apache.calcite.rex.RexSubQuery;
 import org.apache.calcite.rex.RexTableInputRef;
 import org.apache.calcite.rex.RexVisitor;
 import org.apache.calcite.sql.SqlOperator;
-import org.apache.flink.table.runtime.Exepression;
-import org.apache.flink.table.runtime.RexType;
 
-public class CodeGeneratorRexVisitor implements RexVisitor<Exepression> {
+public class ConditionRexVisitor implements RexVisitor<ConditionDExpression> {
 
-  private Map<Integer, String> indexToName;
+  private List<ConditionDExpression> conditionExpressions;
 
-  public CodeGeneratorRexVisitor(RelDataType dataType) {
-    List<String> fieldNames = dataType.getFieldNames();
-    indexToName = new HashMap<>(fieldNames.size());
-    int index = 0;
-    for (String name : fieldNames) {
-      indexToName.put(index++, name);
-    }
+  public ConditionRexVisitor(List<ConditionDExpression> conditionExpressions) {
+    this.conditionExpressions = conditionExpressions;
   }
 
   @Override
-  public Exepression visitInputRef(RexInputRef rexInputRef) {
-    int index = rexInputRef.getIndex();
-    if (index >= indexToName.size()) {
-      throw new ArrayIndexOutOfBoundsException("Project select field index error, index: " + index);
-    }
-
-    return new Exepression(indexToName.get(index), RexType.NAME);
-  }
-
-  @Override
-  public Exepression visitLocalRef(RexLocalRef rexLocalRef) {
-    throw new CodeGenException("Local variables are not supported yet.");
-  }
-
-  @Override
-  public Exepression visitLiteral(RexLiteral rexLiteral) {
+  public ConditionDExpression visitInputRef(RexInputRef rexInputRef) {
     return null;
   }
 
   @Override
-  public Exepression visitCall(RexCall rexCall) {
+  public ConditionDExpression visitLocalRef(RexLocalRef rexLocalRef) {
+    return null;
+  }
+
+  @Override
+  public ConditionDExpression visitLiteral(RexLiteral rexLiteral) {
+    return null;
+  }
+
+  @Override
+  public ConditionDExpression visitCall(RexCall rexCall) {
     SqlOperator operator = rexCall.getOperator();
 
     // 算数表达式
@@ -189,42 +174,42 @@ public class CodeGeneratorRexVisitor implements RexVisitor<Exepression> {
   }
 
   @Override
-  public Exepression visitOver(RexOver rexOver) {
+  public ConditionDExpression visitOver(RexOver rexOver) {
     return null;
   }
 
   @Override
-  public Exepression visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
+  public ConditionDExpression visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
     return null;
   }
 
   @Override
-  public Exepression visitDynamicParam(RexDynamicParam rexDynamicParam) {
+  public ConditionDExpression visitDynamicParam(RexDynamicParam rexDynamicParam) {
     return null;
   }
 
   @Override
-  public Exepression visitRangeRef(RexRangeRef rexRangeRef) {
+  public ConditionDExpression visitRangeRef(RexRangeRef rexRangeRef) {
     return null;
   }
 
   @Override
-  public Exepression visitFieldAccess(RexFieldAccess rexFieldAccess) {
+  public ConditionDExpression visitFieldAccess(RexFieldAccess rexFieldAccess) {
     return null;
   }
 
   @Override
-  public Exepression visitSubQuery(RexSubQuery rexSubQuery) {
+  public ConditionDExpression visitSubQuery(RexSubQuery rexSubQuery) {
     return null;
   }
 
   @Override
-  public Exepression visitTableInputRef(RexTableInputRef rexTableInputRef) {
+  public ConditionDExpression visitTableInputRef(RexTableInputRef rexTableInputRef) {
     return null;
   }
 
   @Override
-  public Exepression visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
+  public ConditionDExpression visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
     return null;
   }
 }

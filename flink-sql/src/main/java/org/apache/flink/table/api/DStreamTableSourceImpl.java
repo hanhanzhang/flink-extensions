@@ -4,6 +4,7 @@ package org.apache.flink.table.api;
 import com.sdu.flink.utils.SqlUtils;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -19,27 +20,28 @@ import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.tsextractors.ExistingField;
 import org.apache.flink.table.sources.wmstrategies.BoundedOutOfOrderTimestamps;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.types.CompositeDRow;
+import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.types.DSchemaTuple;
 
 /**
  * {@link StreamTableSourceScan}
  *
  * @author hanhan.zhang
  * */
-public class DSqlStreamTableSourceImpl<T> implements DynamicStreamTableSource, DefinedRowtimeAttributes {
+public class DStreamTableSourceImpl<T> implements DynamicStreamTableSource, DefinedRowtimeAttributes {
 
   private final TableSchema tableSchema;
 
   private final SourceFunction<T> sourceFunction;
-  private final MapFunction<T, CompositeDRow> mapFunction;
-  private final SourceFunction<CompositeDRow> schemaCheckFunction;
+  private final MapFunction<T, DRecordTuple> mapFunction;
+  private final SourceFunction<DSchemaTuple> schemaCheckFunction;
 
   private final String eventTimeName;
   private final long lateness;
 
-  public DSqlStreamTableSourceImpl(
-      SourceFunction<T> sourceFunction, MapFunction<T, CompositeDRow> mapFunction, TableSchema tableSchema,
-      SourceFunction<CompositeDRow> schemaCheckFunction,
+  public DStreamTableSourceImpl(
+      SourceFunction<T> sourceFunction, MapFunction<T, DRecordTuple> mapFunction, TableSchema tableSchema,
+      SourceFunction<DSchemaTuple> schemaCheckFunction,
       String eventTimeName, long lateness) {
     this.sourceFunction = sourceFunction;
     this.mapFunction = mapFunction;
@@ -50,19 +52,19 @@ public class DSqlStreamTableSourceImpl<T> implements DynamicStreamTableSource, D
   }
 
   @Override
-  public BroadcastStream<CompositeDRow> getBroadcastStream(StreamExecutionEnvironment execEnv) {
-    DataStream<CompositeDRow> schemaUpdateStream = execEnv.addSource(schemaCheckFunction);
-    MapStateDescriptor<Void, CompositeDRow> broadcastStateDescriptor = new MapStateDescriptor<>(
-        "BroadcastSqlProjectSchemaState", Types.VOID, TypeInformation.of(CompositeDRow.class));
+  public BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv) {
+    DataStream<DSchemaTuple> schemaUpdateStream = execEnv.addSource(schemaCheckFunction);
+    MapStateDescriptor<Void, Map<String, String>> broadcastStateDescriptor = new MapStateDescriptor<>(
+        "BroadcastSqlProjectSchemaState", Types.VOID, Types.MAP(Types.STRING, Types.STRING));
     return schemaUpdateStream.broadcast(broadcastStateDescriptor);
   }
 
   @Override
-  public DataStream<CompositeDRow> getDataStream(StreamExecutionEnvironment execEnv) {
+  public DataStream<DRecordTuple> getDataStream(StreamExecutionEnvironment execEnv) {
     // TODO: 并发度
     return execEnv.addSource(sourceFunction)
         .map(mapFunction)
-        .returns(TypeInformation.of(CompositeDRow.class))
+        .returns(TypeInformation.of(DRecordTuple.class))
         .setParallelism(8);
   }
 

@@ -4,17 +4,19 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.CompositeDRow;
+import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.types.DSchemaTuple;
+import org.apache.flink.types.DStreamRecord;
 
-public interface DynamicStreamTableSource extends TableSource<CompositeDRow> {
+public interface DynamicStreamTableSource extends TableSource<DStreamRecord> {
 
-  BroadcastStream<CompositeDRow> getBroadcastStream(StreamExecutionEnvironment execEnv);
+  BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv);
 
-  DataStream<CompositeDRow> getDataStream(StreamExecutionEnvironment execEnv);
+  DataStream<DRecordTuple> getDataStream(StreamExecutionEnvironment execEnv);
 
   @Override
-  default TypeInformation<CompositeDRow> getReturnType() {
-    return TypeInformation.of(CompositeDRow.class);
+  default TypeInformation<DStreamRecord> getReturnType() {
+    return TypeInformation.of(DStreamRecord.class);
   }
 
 }

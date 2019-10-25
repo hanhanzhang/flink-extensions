@@ -1,11 +1,11 @@
 package org.apache.flink.table.plan.nodes;
 
 import org.apache.calcite.plan.Convention;
-import org.apache.flink.table.plan.nodes.datastream.DSqlDataStreamRel;
+import org.apache.flink.table.plan.nodes.datastream.DDataStreamRel;
 
-public class DSqlFlinkConventions {
+public class DFlinkConventions {
 
   public static Convention DYNAMIC_DATA_STREAM = new Convention.Impl("DYNAMIC_DATA_STREAM",
-      DSqlDataStreamRel.class);
+      DDataStreamRel.class);
 
 }

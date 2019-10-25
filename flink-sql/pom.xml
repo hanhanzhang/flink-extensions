@@ -21,6 +21,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.10</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.sdu.flink</groupId>
             <artifactId>flink-common</artifactId>
             <version>${project.version}</version>

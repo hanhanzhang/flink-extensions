@@ -15,6 +15,7 @@
         <module>flink-network</module>
         <module>blink-sql</module>
         <module>flink-common</module>
+      <module>flink-cep</module>
     </modules>
 
     <properties>

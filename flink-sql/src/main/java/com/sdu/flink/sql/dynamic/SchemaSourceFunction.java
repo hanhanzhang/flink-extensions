@@ -1,10 +1,13 @@
 package com.sdu.flink.sql.dynamic;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import org.apache.flink.types.CompositeDRow;
+import org.apache.flink.types.DProjectSchema;
+import org.apache.flink.types.DSchemaTuple;
 
-public class SchemaSourceFunction implements SourceFunction<CompositeDRow> {
+public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
 
   private final long interval;
   private boolean running;
@@ -18,21 +21,29 @@ public class SchemaSourceFunction implements SourceFunction<CompositeDRow> {
   }
 
   @Override
-  public void run(SourceContext<CompositeDRow> ctx) throws Exception {
-    // TODO: 测试
-    String[] fields = new String[] {"uid", "action", "timestamp"};
+  public void run(SourceContext<DSchemaTuple> ctx) throws Exception {
+    // TODO: 解析SQL
+    String[] fieldNames = new String[] {"uid", "action", "timestamp"};
+    String[] fieldTypes = new String[] {"String", "String", "String"};
     int end = -1;
 
     while (running) {
       boolean shouldUpdate = System.currentTimeMillis() - lastCheckTimestamp >= interval;
       if (shouldUpdate) {
         end += 1;
-        int len = end % fields.length;
-        String[] selectFields = new String[len + 1];
+        int len = end % fieldNames.length;
+
+        DSchemaTuple schemaTuple = new DSchemaTuple();
+
+        Map<String, String> nameToTypes = new HashMap<>();
         for (int i = 0; i <= len; ++i) {
-          selectFields[i] = fields[i];
+          nameToTypes.put(fieldNames[i], fieldTypes[i]);
         }
-        ctx.collect(CompositeDRow.ofSchema(selectFields));
+
+        schemaTuple.addProjectSchema(new DProjectSchema(nameToTypes));
+
+        ctx.collect(schemaTuple);
+
         lastCheckTimestamp = System.currentTimeMillis();
       }
 

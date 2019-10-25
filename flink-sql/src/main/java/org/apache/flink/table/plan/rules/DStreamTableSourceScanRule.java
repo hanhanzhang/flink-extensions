@@ -4,19 +4,19 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.convert.ConverterRule;
-import org.apache.flink.table.plan.nodes.DSqlFlinkConventions;
+import org.apache.flink.table.plan.nodes.DFlinkConventions;
 import org.apache.flink.table.plan.nodes.FlinkConventions;
-import org.apache.flink.table.plan.nodes.datastream.DSqlTableSourceScan;
+import org.apache.flink.table.plan.nodes.datastream.DTableSourceScan;
 import org.apache.flink.table.plan.nodes.logical.FlinkLogicalTableSourceScan;
 import org.apache.flink.table.sources.DynamicStreamTableSource;
 import org.apache.flink.table.sources.TableSource;
 
-public class DSqlStreamTableSourceScanRule extends ConverterRule {
+public class DStreamTableSourceScanRule extends ConverterRule {
 
-  public static DSqlStreamTableSourceScanRule INSTANCE = new DSqlStreamTableSourceScanRule();
+  public static DStreamTableSourceScanRule INSTANCE = new DStreamTableSourceScanRule();
 
-  private DSqlStreamTableSourceScanRule() {
-    super(FlinkLogicalTableSourceScan.class, FlinkConventions.LOGICAL(), DSqlFlinkConventions.DYNAMIC_DATA_STREAM, "DSqlStreamTableSourceScanRule");
+  private DStreamTableSourceScanRule() {
+    super(FlinkLogicalTableSourceScan.class, FlinkConventions.LOGICAL(), DFlinkConventions.DYNAMIC_DATA_STREAM, "DStreamTableSourceScanRule");
   }
 
   @Override
@@ -31,9 +31,9 @@ public class DSqlStreamTableSourceScanRule extends ConverterRule {
   @Override
   public RelNode convert(RelNode rel) {
     FlinkLogicalTableSourceScan scan = (FlinkLogicalTableSourceScan) rel;
-    RelTraitSet traitSet = rel.getTraitSet().replace(DSqlFlinkConventions.DYNAMIC_DATA_STREAM);
+    RelTraitSet traitSet = rel.getTraitSet().replace(DFlinkConventions.DYNAMIC_DATA_STREAM);
 
-    return new DSqlTableSourceScan(rel.getCluster(), traitSet, scan.getTable(),
+    return new DTableSourceScan(rel.getCluster(), traitSet, scan.getTable(),
         (DynamicStreamTableSource) scan.tableSource(), scan.selectedFields());
   }
 }

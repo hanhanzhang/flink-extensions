@@ -18,7 +18,7 @@ import org.apache.flink.sql.parser.dml.RichSqlInsert;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.DSqlAppendStreamTableSink;
+import org.apache.flink.table.DAppendStreamTableSink;
 import org.apache.flink.table.api.StreamQueryConfig;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableException;
@@ -48,8 +48,8 @@ import org.apache.flink.table.operations.Operation;
 import org.apache.flink.table.operations.OutputConversionModifyOperation;
 import org.apache.flink.table.operations.QueryOperation;
 import org.apache.flink.table.operations.UnregisteredSinkModifyOperation;
-import org.apache.flink.table.plan.DSqlStreamOptimizer;
-import org.apache.flink.table.plan.nodes.datastream.DSqlDataStreamRel;
+import org.apache.flink.table.plan.DStreamOptimizer;
+import org.apache.flink.table.plan.nodes.datastream.DDataStreamRel;
 import org.apache.flink.table.plan.util.UpdatingPlanChecker;
 import org.apache.flink.table.planner.PlanningConfigurationBuilder;
 import org.apache.flink.table.sinks.AppendStreamTableSink;
@@ -58,21 +58,23 @@ import org.apache.flink.table.sinks.RetractStreamTableSink;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sinks.UpsertStreamTableSink;
 import org.apache.flink.table.sqlexec.SqlToOperationConverter;
-import org.apache.flink.types.CompositeDRow;
+import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.types.DStreamRecord;
+import org.apache.flink.types.DStreamRecordType;
 
 /**
  * @author hanhan.zhang
  */
-public class DSqlStreamPlanner implements Planner {
+public class DStreamPlanner implements Planner {
 
   private final Executor executor;
   private final TableConfig config;
   private final CatalogManager catalogManager;
 
   private final PlanningConfigurationBuilder planningConfigurationBuilder;
-  private final DSqlStreamOptimizer optimizer;
+  private final DStreamOptimizer optimizer;
 
-  public DSqlStreamPlanner(Executor executor, TableConfig config, FunctionCatalog functionCatalog, CatalogManager catalogManager) {
+  public DStreamPlanner(Executor executor, TableConfig config, FunctionCatalog functionCatalog, CatalogManager catalogManager) {
     this.executor = executor;
     this.config = config;
     this.catalogManager = catalogManager;
@@ -82,7 +84,7 @@ public class DSqlStreamPlanner implements Planner {
     ExpressionBridge<PlannerExpression> expressionBridge = new ExpressionBridge<>(functionCatalog, PlannerExpressionConverter.INSTANCE());
 
     this.planningConfigurationBuilder = new PlanningConfigurationBuilder(config, functionCatalog, internalSchema, expressionBridge);
-    this.optimizer = new DSqlStreamOptimizer(
+    this.optimizer = new DStreamOptimizer(
         () -> config.getPlannerConfig()
             .unwrap(CalciteConfig.class)
             .orElse(CalciteConfig.DEFAULT()),
@@ -249,8 +251,8 @@ public class DSqlStreamPlanner implements Planner {
       resultSink = null;
     }
 
-    else if (sink instanceof DSqlAppendStreamTableSink) {
-      DSqlAppendStreamTableSink appendSink = (DSqlAppendStreamTableSink) sink;
+    else if (sink instanceof DAppendStreamTableSink) {
+      DAppendStreamTableSink appendSink = (DAppendStreamTableSink) sink;
       resultSink = writeToAppendSink(appendSink, tableOperation, config);
     }
 
@@ -268,7 +270,7 @@ public class DSqlStreamPlanner implements Planner {
   }
 
   private DataStreamSink<?> writeToAppendSink(
-      AppendStreamTableSink<CompositeDRow> sink, QueryOperation tableOperation, StreamQueryConfig streamQueryConfig) {
+      AppendStreamTableSink<DRecordTuple> sink, QueryOperation tableOperation, StreamQueryConfig streamQueryConfig) {
 
     // step1: optimize plan
     RelNode relNode = getRelBuilder().tableOperation(tableOperation).build();
@@ -279,15 +281,19 @@ public class DSqlStreamPlanner implements Planner {
     }
 
     // step2: convert DataStream
-    DataStream<CompositeDRow> dataStream = translateToSqlElement(optimizedPlan, streamQueryConfig);
+    DataStream<DRecordTuple> dataStream = translateToSqlElement(optimizedPlan, streamQueryConfig);
     return sink.consumeDataStream(dataStream);
   }
 
 
-  private DataStream<CompositeDRow> translateToSqlElement(RelNode logicalPlan, StreamQueryConfig queryConfig) {
-    if (logicalPlan instanceof DSqlDataStreamRel) {
-      DSqlDataStreamRel node = (DSqlDataStreamRel) logicalPlan;
-      return node.translateToSqlElement(this, queryConfig);
+  private DataStream<DRecordTuple> translateToSqlElement(RelNode logicalPlan, StreamQueryConfig queryConfig) {
+    if (logicalPlan instanceof DDataStreamRel) {
+      DDataStreamRel node = (DDataStreamRel) logicalPlan;
+      return node.translateToSqlElement(this, queryConfig)
+          .filter((DStreamRecord streamRecord) -> streamRecord.getRecordType() == DStreamRecordType.RECORD)
+          .returns(DStreamRecord.class)
+          .map(DStreamRecord::recordTuple)
+          .returns(DRecordTuple.class);
     }
     else {
       //

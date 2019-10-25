@@ -4,18 +4,17 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.sinks.AppendStreamTableSink;
 import org.apache.flink.table.sinks.TableSink;
-import org.apache.flink.types.CompositeDRow;
+import org.apache.flink.types.DRecordTuple;
 
-public interface DSqlAppendStreamTableSink extends AppendStreamTableSink<CompositeDRow> {
+public interface DAppendStreamTableSink extends AppendStreamTableSink<DRecordTuple> {
 
-  default void emitDataStream(DataStream<CompositeDRow> dataStream) {
+  default void emitDataStream(DataStream<DRecordTuple> dataStream) {
 
   }
 
-  default TableSink<CompositeDRow> configure(String[] fieldNames,
+  default TableSink<DRecordTuple> configure(String[] fieldNames,
       TypeInformation<?>[] fieldTypes) {
     return null;
   }
-
 
 }

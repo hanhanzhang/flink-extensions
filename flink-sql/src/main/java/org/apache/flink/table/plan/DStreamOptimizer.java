@@ -1,6 +1,6 @@
 package org.apache.flink.table.plan;
 
-import static org.apache.flink.table.plan.nodes.DSqlFlinkConventions.DYNAMIC_DATA_STREAM;
+import static org.apache.flink.table.plan.nodes.DFlinkConventions.DYNAMIC_DATA_STREAM;
 
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.sql2rel.RelDecorrelator;
@@ -9,14 +9,14 @@ import org.apache.calcite.tools.RuleSet;
 import org.apache.calcite.tools.RuleSets;
 import org.apache.flink.table.calcite.CalciteConfig;
 import org.apache.flink.table.calcite.RelTimeIndicatorConverter;
-import org.apache.flink.table.plan.rules.DSqlDataStreamCalcRule;
-import org.apache.flink.table.plan.rules.DSqlStreamTableSourceScanRule;
+import org.apache.flink.table.plan.rules.DDataStreamCalcRule;
+import org.apache.flink.table.plan.rules.DStreamTableSourceScanRule;
 import org.apache.flink.table.planner.PlanningConfigurationBuilder;
 import scala.Function0;
 
-public class DSqlStreamOptimizer extends StreamOptimizer {
+public class DStreamOptimizer extends StreamOptimizer {
 
-  public DSqlStreamOptimizer(Function0<CalciteConfig> calciteConfig,
+  public DStreamOptimizer(Function0<CalciteConfig> calciteConfig,
       PlanningConfigurationBuilder planningConfigurationBuilder) {
     super(calciteConfig, planningConfigurationBuilder);
   }
@@ -29,7 +29,7 @@ public class DSqlStreamOptimizer extends StreamOptimizer {
 //        DataStreamGroupAggregateRule.INSTANCE(),
 //        DataStreamOverAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowAggregateRule.INSTANCE(),
-        DSqlDataStreamCalcRule.INSTANCE,
+        DDataStreamCalcRule.INSTANCE,
 //        DataStreamScanRule.INSTANCE(),
 //        DataStreamUnionRule.INSTANCE(),
 //        DataStreamValuesRule.INSTANCE(),
@@ -37,7 +37,7 @@ public class DSqlStreamOptimizer extends StreamOptimizer {
 //        DataStreamWindowJoinRule.INSTANCE(),
 //        DataStreamJoinRule.INSTANCE(),
 //        DataStreamTemporalTableJoinRule.INSTANCE(),
-        DSqlStreamTableSourceScanRule.INSTANCE
+        DStreamTableSourceScanRule.INSTANCE
 //        DataStreamMatchRule.INSTANCE(),
 //        DataStreamTableAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowTableAggregateRule.INSTANCE()
