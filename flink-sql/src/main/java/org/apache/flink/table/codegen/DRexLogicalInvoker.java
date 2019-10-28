@@ -8,28 +8,30 @@ import org.apache.flink.types.DRecordTuple;
 @Internal
 public class DRexLogicalInvoker implements DRexFilterInvoker {
 
-  private final OperatorType operatorType;
+  private final RexLogicalType rexLogicalType;
 
-  private List<DRexFilterInvoker> operatorInvokers;
+  private List<DRexInvoker<?>> operatorInvokers;
 
-  public DRexLogicalInvoker(OperatorType operatorType, List<DRexFilterInvoker> operatorInvokers) {
-    this.operatorType = operatorType;
+  DRexLogicalInvoker(RexLogicalType rexLogicalType, List<DRexInvoker<?>> operatorInvokers) {
+    this.rexLogicalType = rexLogicalType;
     this.operatorInvokers = operatorInvokers;
   }
 
   @Override
-  public Boolean invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
-    switch (operatorType) {
+  public Boolean invoke(DRecordTuple recordTuple) throws DRexInvokeException {
+    switch (rexLogicalType) {
       case AND:
-        for (DRexFilterInvoker invoker : operatorInvokers) {
-          if (!invoker.invoke(recordTuple)) {
+        for (DRexInvoker<?> invoker : operatorInvokers) {
+          Boolean result = (Boolean) invoker.invoke(recordTuple);
+          if (!result) {
             return false;
           }
         }
         return true;
       case OR:
-        for (DRexFilterInvoker invoker : operatorInvokers) {
-          if (invoker.invoke(recordTuple)) {
+        for (DRexInvoker<?> invoker : operatorInvokers) {
+          Boolean result = (Boolean) invoker.invoke(recordTuple);
+          if (result) {
             return true;
           }
         }
@@ -43,7 +45,7 @@ public class DRexLogicalInvoker implements DRexFilterInvoker {
     return SqlTypeName.BOOLEAN;
   }
 
-  public enum OperatorType {
+  public enum RexLogicalType {
 
     AND, OR
 

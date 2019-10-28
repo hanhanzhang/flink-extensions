@@ -6,7 +6,7 @@ import org.apache.flink.types.DRecordTuple;
 
 public interface DRexInvoker<T> extends Serializable {
 
-  T invoke(DRecordTuple recordTuple) throws DExpressionInvokeException;
+  T invoke(DRecordTuple recordTuple) throws DRexInvokeException;
 
   SqlTypeName getResultType();
 

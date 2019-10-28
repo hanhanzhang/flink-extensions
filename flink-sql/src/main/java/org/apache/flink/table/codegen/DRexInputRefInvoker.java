@@ -14,7 +14,7 @@ public class DRexInputRefInvoker implements DRexInvoker<String> {
   }
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
+  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     return recordTuple.getRecordValue(fieldName);
   }
 

@@ -26,7 +26,7 @@ public class DSqlFunctionInvoker implements DRexInvoker<String> {
 
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
+  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     // TODO: 没必要都要构造Method, Method修饰目前支持静态方法, Method.open()
     try {
       Class<?> cls = Class.forName(className);
@@ -43,7 +43,7 @@ public class DSqlFunctionInvoker implements DRexInvoker<String> {
       // TODO: 强转string?
       return String.valueOf(method.invoke(null, params));
     } catch (Exception e) {
-      throw new DExpressionInvokeException("invoke user define function failure", e);
+      throw new DRexInvokeException("invoke user define function failure", e);
     }
 
   }

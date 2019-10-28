@@ -8,7 +8,7 @@ import org.apache.flink.table.plan.nodes.DFlinkConventions;
 import org.apache.flink.table.plan.nodes.FlinkConventions;
 import org.apache.flink.table.plan.nodes.datastream.DTableSourceScan;
 import org.apache.flink.table.plan.nodes.logical.FlinkLogicalTableSourceScan;
-import org.apache.flink.table.sources.DynamicStreamTableSource;
+import org.apache.flink.table.sources.DStreamTableSource;
 import org.apache.flink.table.sources.TableSource;
 
 public class DStreamTableSourceScanRule extends ConverterRule {
@@ -25,7 +25,7 @@ public class DStreamTableSourceScanRule extends ConverterRule {
 
     TableSource<?> tableSource = scan.tableSource();
 
-    return tableSource instanceof DynamicStreamTableSource;
+    return tableSource instanceof DStreamTableSource;
   }
 
   @Override
@@ -34,6 +34,6 @@ public class DStreamTableSourceScanRule extends ConverterRule {
     RelTraitSet traitSet = rel.getTraitSet().replace(DFlinkConventions.DYNAMIC_DATA_STREAM);
 
     return new DTableSourceScan(rel.getCluster(), traitSet, scan.getTable(),
-        (DynamicStreamTableSource) scan.tableSource(), scan.selectedFields());
+        (DStreamTableSource) scan.tableSource(), scan.selectedFields());
   }
 }

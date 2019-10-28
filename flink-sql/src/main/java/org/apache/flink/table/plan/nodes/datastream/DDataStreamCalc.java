@@ -14,10 +14,8 @@ import org.apache.calcite.util.Pair;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
-import org.apache.flink.table.codegen.DConditionInvoker;
-import org.apache.flink.table.codegen.DConditionRexVisitor;
-import org.apache.flink.table.codegen.DProjectFieldRexVisitor;
 import org.apache.flink.table.codegen.DRexInvoker;
+import org.apache.flink.table.codegen.DRexInvokerVisitor;
 import org.apache.flink.table.delegation.DStreamPlanner;
 import org.apache.flink.table.runtime.DStreamCalcProcessFunction;
 import org.apache.flink.types.DStreamRecord;
@@ -39,6 +37,7 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public DataStream<DStreamRecord> translateToSqlElement(DStreamPlanner tableEnv,
       StreamQueryConfig queryConfig) {
 
@@ -46,19 +45,19 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
     DataStream<DStreamRecord> inputDataStream = inputRelNode.translateToSqlElement(tableEnv, queryConfig);
 
     // projection
-    final DProjectFieldRexVisitor projectFieldRexVisitor = new DProjectFieldRexVisitor(deriveRowType());
-    final Map<String, DRexInvoker<String>> projectFields = new HashMap<>();
+    final DRexInvokerVisitor visitor = new DRexInvokerVisitor(deriveRowType());
+    final Map<String, DRexInvoker<?>> projectFields = new HashMap<>();
     for (int i = 0; i < program.getNamedProjects().size(); ++i) {
       Pair<RexLocalRef, String> rexLocalRefAndName = program.getNamedProjects().get(i);
       RexNode rexNode = program.expandLocalRef(rexLocalRefAndName.left);
-      projectFields.put(rexLocalRefAndName.right, rexNode.accept(projectFieldRexVisitor));
+      projectFields.put(rexLocalRefAndName.right, rexNode.accept(visitor));
     }
 
     // condition
-    DConditionInvoker conditionInvoker = null;
+    DRexInvoker<Boolean> conditionInvoker = null;
     if (program.getCondition() != null) {
       RexNode rexNode = program.expandLocalRef(program.getCondition());
-      conditionInvoker = new DConditionInvoker(rexNode.accept(new DConditionRexVisitor(projectFieldRexVisitor)));
+      conditionInvoker = (DRexInvoker<Boolean>) rexNode.accept(visitor);
     }
 
     return inputDataStream.process(new DStreamCalcProcessFunction(projectFields, conditionInvoker))

@@ -8,7 +8,7 @@ import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
 
-public interface DynamicStreamTableSource extends TableSource<DStreamRecord> {
+public interface DStreamTableSource extends TableSource<DStreamRecord> {
 
   BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv);
 

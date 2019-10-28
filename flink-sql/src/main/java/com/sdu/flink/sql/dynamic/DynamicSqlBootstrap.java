@@ -39,6 +39,7 @@ public class DynamicSqlBootstrap {
     recordTypes.put("action", "String");
     recordTypes.put("timestamp", "Long");
 
+
     // 数据源
     TableSchema tableSchema = TableSchema.builder()
         .field("uid", DataTypes.STRING())

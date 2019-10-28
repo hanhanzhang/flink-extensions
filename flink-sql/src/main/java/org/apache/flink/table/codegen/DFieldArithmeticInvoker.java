@@ -14,33 +14,33 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
 
   private final SqlTypeName resultType;
   private final ArithmeticType arithmeticType;
-  private final DProjectFieldInvoker leftFieldInvoker;
-  private final DProjectFieldInvoker rightFieldInvoker;
+  private final DRexInvoker<?> left;
+  private final DRexInvoker<?> right;
 
-  public DFieldArithmeticInvoker(SqlTypeName resultType, ArithmeticType arithmeticType,
-      DProjectFieldInvoker leftFieldInvoker, DProjectFieldInvoker rightFieldInvoker) {
+  DFieldArithmeticInvoker(SqlTypeName resultType, ArithmeticType arithmeticType, DRexInvoker<?> left, DRexInvoker<?> right) {
     this.resultType = resultType;
     this.arithmeticType = arithmeticType;
-    this.leftFieldInvoker = leftFieldInvoker;
-    this.rightFieldInvoker = rightFieldInvoker;
+    this.left = left;
+    this.right = right;
   }
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
-    if (!isNumeric(leftFieldInvoker.getResultType())) {
-      throw new DExpressionInvokeException("SqlTypeName should be number type, type: " + leftFieldInvoker.getResultType());
+  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
+    if (!isNumeric(left.getResultType())) {
+      throw new DRexInvokeException("SqlTypeName should be number type, type: " + left.getResultType());
     }
 
-    if (!isNumeric(rightFieldInvoker.getResultType())) {
-      throw new DExpressionInvokeException("SqlTypeName should be number type, type: " + rightFieldInvoker.getResultType());
+    if (!isNumeric(right.getResultType())) {
+      throw new DRexInvokeException("SqlTypeName should be number type, type: " + right.getResultType());
     }
 
-    String leftFieldValue = leftFieldInvoker.invoke(recordTuple);
-    String rightFieldValue = rightFieldInvoker.invoke(recordTuple);
+    // TODO: 2019-10-28
+    String leftFieldValue = (String) left.invoke(recordTuple);
+    String rightFieldValue = (String) right.invoke(recordTuple);
 
     switch (arithmeticType) {
       case MINUS:
-        if (canCastToDouble(leftFieldInvoker.getResultType()) || canCastToDouble(rightFieldInvoker.getResultType())) {
+        if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
           double leftValue = Double.parseDouble(leftFieldValue);
           double rightValue = Double.parseDouble(rightFieldValue);
 
@@ -52,7 +52,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
           return String.valueOf(leftValue - rightValue);
         }
       case PLUS:
-        if (canCastToDouble(leftFieldInvoker.getResultType()) || canCastToDouble(rightFieldInvoker.getResultType())) {
+        if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
           double leftValue = Double.parseDouble(leftFieldValue);
           double rightValue = Double.parseDouble(rightFieldValue);
 
@@ -64,7 +64,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
           return String.valueOf(leftValue + rightValue);
         }
       case MOD:
-        if (canCastToDouble(leftFieldInvoker.getResultType()) || canCastToDouble(rightFieldInvoker.getResultType())) {
+        if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
           double leftValue = Double.parseDouble(leftFieldValue);
           double rightValue = Double.parseDouble(rightFieldValue);
 
@@ -77,7 +77,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
         }
       case DIVIDE:
       case DIVIDE_INTEGER:
-        if (canCastToDouble(leftFieldInvoker.getResultType()) || canCastToDouble(rightFieldInvoker.getResultType())) {
+        if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
           double leftValue = Double.parseDouble(leftFieldValue);
           double rightValue = Double.parseDouble(rightFieldValue);
 
@@ -89,7 +89,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
           return String.valueOf(leftValue / rightValue);
         }
       case MULTIPLY:
-        if (canCastToDouble(leftFieldInvoker.getResultType()) || canCastToDouble(rightFieldInvoker.getResultType())) {
+        if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
           double leftValue = Double.parseDouble(leftFieldValue);
           double rightValue = Double.parseDouble(rightFieldValue);
 
@@ -101,7 +101,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
           return String.valueOf(leftValue * rightValue);
         }
       default:
-        throw new DExpressionInvokeException("Unsupported arithmetic type: " + arithmeticType);
+        throw new DRexInvokeException("Unsupported arithmetic type: " + arithmeticType);
     }
 
   }

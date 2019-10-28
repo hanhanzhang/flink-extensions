@@ -12,8 +12,6 @@ import java.util.Map.Entry;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.table.codegen.DConditionInvoker;
-import org.apache.flink.table.codegen.DProjectFieldInvoker;
 import org.apache.flink.table.codegen.DRexInputRefInvoker;
 import org.apache.flink.table.codegen.DRexInvoker;
 import org.apache.flink.table.codegen.DSqlFunctionInvoker;
@@ -29,11 +27,11 @@ import org.apache.flink.util.Preconditions;
 
 public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, DStreamRecord> {
 
-  private Map<String, DRexInvoker<String>> projectFieldInvokers;
+  private Map<String, DRexInvoker<?>> projectFieldInvokers;
 
-  private DConditionInvoker conditionInvoker;
+  private DRexInvoker<Boolean> conditionInvoker;
 
-  public DStreamCalcProcessFunction(Map<String, DRexInvoker<String>> projectFieldInvokers, DConditionInvoker conditionInvoker) {
+  public DStreamCalcProcessFunction(Map<String, DRexInvoker<?>> projectFieldInvokers, DRexInvoker<Boolean> conditionInvoker) {
     Preconditions.checkNotNull(projectFieldInvokers);
 
     this.projectFieldInvokers = projectFieldInvokers;
@@ -68,16 +66,16 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     }
 
     // 映射字段
-    // TODO: DProjectFunctionExpression 起别名问题, 下游也应该跟着改
     Map<String, String> recordTypes = new HashMap<>();
     Map<String, String> recordValues = new HashMap<>();
-    for (Entry<String, DRexInvoker<String>> entry : projectFieldInvokers.entrySet()) {
+    for (Entry<String, DRexInvoker<?>> entry : projectFieldInvokers.entrySet()) {
       String newFieldName = entry.getKey();
       String newFieldType = sqlTypeToJavaTypeAsString(entry.getValue().getResultType());
       recordTypes.put(newFieldName, newFieldType);
 
-      String value = entry.getValue().invoke(recordTuple);
-      recordValues.put(newFieldName, value);
+      // TODO: 2019-10-28 类型处理
+      Object value = entry.getValue().invoke(recordTuple);
+      recordValues.put(newFieldName, String.valueOf(value));
     }
 
     out.collect(new DStreamRecord(new DRecordTuple(recordTypes, recordValues)));
@@ -97,7 +95,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     if (projectSchema != null) {
       Map<String, DProjectFieldInfo> inputProjectFields = projectSchema.getInputProjectFields();
       if (MapUtils.isNotEmpty(inputProjectFields)) {
-        Map<String, DRexInvoker<String>> projectFieldInvokers = new HashMap<>();
+        Map<String, DRexInvoker<?>> projectFieldInvokers = new HashMap<>();
 
         for (Entry<String, DProjectFieldInfo> entry : inputProjectFields.entrySet()) {
           // outputFieldName 可能是别名, 如 udf(field_name) as new_name
@@ -115,7 +113,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
           } else {
             DRexInputRefInvoker inputRefInvoker = new DRexInputRefInvoker(projectFieldInfo.getFieldName(),
                 javaTypeToSqlType(projectFieldInfo.getFieldType()));
-            projectFieldInvokers.put(outputFieldName, new DProjectFieldInvoker(inputRefInvoker));
+            projectFieldInvokers.put(outputFieldName, inputRefInvoker);
           }
         }
 

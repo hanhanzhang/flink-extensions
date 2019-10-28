@@ -19,7 +19,7 @@ public class DProjectFieldInvoker implements DRexInvoker<String> {
   }
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
+  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     return expressionInvoker.invoke(recordTuple);
   }
 

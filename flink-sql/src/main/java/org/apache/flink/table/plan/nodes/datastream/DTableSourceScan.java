@@ -17,7 +17,7 @@ import org.apache.flink.table.api.StreamQueryConfig;
 import org.apache.flink.table.delegation.DStreamPlanner;
 import org.apache.flink.table.plan.nodes.PhysicalTableSourceScan;
 import org.apache.flink.table.sources.DProjectFieldsSelectProcessFunction;
-import org.apache.flink.table.sources.DynamicStreamTableSource;
+import org.apache.flink.table.sources.DStreamTableSource;
 import org.apache.flink.table.sources.TableSource;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
@@ -27,10 +27,10 @@ import scala.collection.Seq;
 
 public class DTableSourceScan extends PhysicalTableSourceScan implements DDataStreamRel {
 
-  private DynamicStreamTableSource tableSource;
+  private DStreamTableSource tableSource;
 
   public DTableSourceScan(RelOptCluster cluster, RelTraitSet traitSet, RelOptTable table,
-      DynamicStreamTableSource tableSource, Option<int[]> selectedFields) {
+      DStreamTableSource tableSource, Option<int[]> selectedFields) {
     super(cluster, traitSet, table, tableSource, selectedFields);
 
     this.tableSource = tableSource;
@@ -65,7 +65,7 @@ public class DTableSourceScan extends PhysicalTableSourceScan implements DDataSt
   @Override
   public PhysicalTableSourceScan copy(RelTraitSet traitSet, TableSource<?> tableSource) {
     return new DTableSourceScan(
-        getCluster(), traitSet, getTable(), (DynamicStreamTableSource) tableSource, selectedFields());
+        getCluster(), traitSet, getTable(), (DStreamTableSource) tableSource, selectedFields());
   }
 
   @Override
