@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import org.apache.flink.types.DProjectSchemaData;
+import org.apache.flink.types.DProjectSchema;
 import org.apache.flink.types.DSchemaTuple;
 
 public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
@@ -14,7 +14,7 @@ public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
 
   private long lastCheckTimestamp;
 
-  public SchemaSourceFunction(long interval) {
+  SchemaSourceFunction(long interval) {
     this.interval = interval;
     this.running = true;
     this.lastCheckTimestamp = 0;
@@ -40,7 +40,7 @@ public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
           nameToTypes.put(fieldNames[i], fieldTypes[i]);
         }
 
-        schemaTuple.addProjectSchema(new DProjectSchemaData(nameToTypes));
+        schemaTuple.addProjectSchema(new DProjectSchema(nameToTypes));
 
         ctx.collect(schemaTuple);
 

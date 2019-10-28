@@ -18,7 +18,7 @@ public class DSqlFunctionInvoker implements DRexInvoker<String> {
 
   private final List<DRexInvoker<?>> parameterRexInvokes;
 
-  DSqlFunctionInvoker(String className, List<DRexInvoker<?>> parameterRexInvokes, SqlTypeName resultType) {
+  public DSqlFunctionInvoker(String className, List<DRexInvoker<?>> parameterRexInvokes, SqlTypeName resultType) {
     this.className = className;
     this.parameterRexInvokes = parameterRexInvokes;
     this.resultType = resultType;

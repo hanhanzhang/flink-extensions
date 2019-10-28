@@ -14,7 +14,7 @@ public class DProjectFieldInvoker implements DRexInvoker<String> {
    * */
   private DRexInvoker<String> expressionInvoker;
 
-  DProjectFieldInvoker(DRexInvoker expressionInvoker) {
+  public DProjectFieldInvoker(DRexInvoker expressionInvoker) {
     this.expressionInvoker = expressionInvoker;
   }
 

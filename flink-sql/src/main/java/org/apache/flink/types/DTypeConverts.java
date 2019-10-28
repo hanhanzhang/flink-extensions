@@ -36,6 +36,35 @@ public class DTypeConverts {
 
       .build();
 
+
+  private static Map<String, SqlTypeName> javaTypeToSqlTypes = ImmutableMap.<String, SqlTypeName>builder()
+      // Boolean
+      .put(Boolean.class.getSimpleName(), SqlTypeName.BOOLEAN)
+
+      // String
+      .put(Character.class.getSimpleName(), SqlTypeName.CHAR)
+      .put(String.class.getSimpleName(), SqlTypeName.VARBINARY)
+
+      // Number
+      .put(Byte.class.getSimpleName(), SqlTypeName.SMALLINT)
+      .put(Integer.class.getSimpleName(), SqlTypeName.INTEGER)
+      .put(Long.class.getSimpleName(), SqlTypeName.BIGINT)
+      .put(BigDecimal.class.getSimpleName(), SqlTypeName.REAL)
+      .put(Float.class.getSimpleName(), SqlTypeName.FLOAT)
+      .put(Double.class.getSimpleName(), SqlTypeName.DOUBLE)
+
+      // byte[]
+      .put(Byte[].class.getSimpleName(), SqlTypeName.VARBINARY)
+      .put(List.class.getSimpleName(), SqlTypeName.ARRAY)
+
+      // date
+      .put(Date.class.getSimpleName(), SqlTypeName.DATE)
+      .put(Timestamp.class.getSimpleName(), SqlTypeName.TIMESTAMP)
+      .put(Time.class.getSimpleName(), SqlTypeName.TIME)
+//      .put(BigDecimal.class.getSimpleName(), SqlTypeName.DECIMAL)
+
+      .build();
+
   private DTypeConverts() {
   }
 
@@ -51,4 +80,11 @@ public class DTypeConverts {
     return sqlTypeToJavaType(sqlTypeName).getSimpleName();
   }
 
+  public static SqlTypeName javaTypeToSqlType(String javaType) {
+    SqlTypeName sqlTypeName = javaTypeToSqlTypes.get(javaType);
+    if (sqlTypeName == null) {
+      throw new UnsupportedSqlJavaTypeException(sqlTypeName);
+    }
+    return sqlTypeName;
+  }
 }

@@ -1,14 +1,25 @@
 package org.apache.flink.table.runtime;
 
+import static org.apache.flink.types.DTypeConverts.javaTypeToSqlType;
 import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaTypeAsString;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.table.codegen.DProjectFieldInvoker;
+import org.apache.flink.table.codegen.DRexInputRefInvoker;
 import org.apache.flink.table.codegen.DRexInvoker;
+import org.apache.flink.table.codegen.DSqlFunctionInvoker;
 import org.apache.flink.types.DConditionSchema;
-import org.apache.flink.types.DProjectSchemaData;
+import org.apache.flink.types.DFuncProjectFieldInfo;
+import org.apache.flink.types.DProjectFieldInfo;
+import org.apache.flink.types.DProjectSchema;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
@@ -65,8 +76,6 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
   }
 
   private void updateSchema(DStreamRecord streamRecord, Collector<DStreamRecord> out) {
-    // 向下游发送变更Schema
-    out.collect(streamRecord);
     /*
      * StreamCalc节点, 更新的Schema信息有两种:
      *
@@ -76,10 +85,34 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
      * **/
     DSchemaTuple schemaTuple = streamRecord.schemaTuple();
 
-    // 更新映射字段
-    DProjectSchemaData projectSchema = schemaTuple.getProjectSchema();
+    DProjectSchema projectSchema = schemaTuple.getProjectSchema();
     if (projectSchema != null) {
-      // TODO: 2019-10-25 别名处理
+      Map<String, DProjectFieldInfo> inputProjectFields = projectSchema.getInputProjectFields();
+      if (MapUtils.isNotEmpty(inputProjectFields)) {
+        Map<String, DRexInvoker<String>> projectFieldInvokers = new HashMap<>();
+
+        for (Entry<String, DProjectFieldInfo> entry : inputProjectFields.entrySet()) {
+          // outputFieldName 可能是别名, 如 udf(field_name) as new_name
+          String outputFieldName = entry.getKey();
+          DProjectFieldInfo projectFieldInfo = entry.getValue();
+
+          //
+          if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
+            DFuncProjectFieldInfo funcProjectFieldInfo = (DFuncProjectFieldInfo) projectFieldInfo;
+            List<DRexInvoker<?>> parameterRexInvokes = fromFuncProjectFieldInfo(funcProjectFieldInfo);
+            DSqlFunctionInvoker sqlFunctionInvoker = new DSqlFunctionInvoker(funcProjectFieldInfo.getClassName(),
+                parameterRexInvokes, javaTypeToSqlType(funcProjectFieldInfo.getFieldType()));
+            projectFieldInvokers.put(outputFieldName, sqlFunctionInvoker);
+
+          } else {
+            DRexInputRefInvoker inputRefInvoker = new DRexInputRefInvoker(projectFieldInfo.getFieldName(),
+                javaTypeToSqlType(projectFieldInfo.getFieldType()));
+            projectFieldInvokers.put(outputFieldName, new DProjectFieldInvoker(inputRefInvoker));
+          }
+        }
+
+        this.projectFieldInvokers = projectFieldInvokers;
+      }
     }
 
     // 更新过滤条件
@@ -88,6 +121,28 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
       // TODO: 2019-10-25
     }
 
+    // 向下游发送变更Schema
+    out.collect(streamRecord);
+  }
+
+  private static List<DRexInvoker<?>> fromFuncProjectFieldInfo(DFuncProjectFieldInfo funcProjectFieldInfo) {
+    List<DProjectFieldInfo> projectFieldInfos = funcProjectFieldInfo.getParameterProjectFields();
+    if (CollectionUtils.isEmpty(projectFieldInfos)) {
+      return Collections.emptyList();
+    }
+
+    List<DRexInvoker<?>> rexInvokers = new ArrayList<>();
+    for (DProjectFieldInfo projectFieldInfo : projectFieldInfos) {
+      if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
+        rexInvokers.addAll(fromFuncProjectFieldInfo((DFuncProjectFieldInfo) projectFieldInfo));
+        continue;
+      }
+
+      rexInvokers.add(new DRexInputRefInvoker(projectFieldInfo.getFieldName(),
+          javaTypeToSqlType(projectFieldInfo.getFieldType())));
+    }
+
+    return rexInvokers;
   }
 
 }

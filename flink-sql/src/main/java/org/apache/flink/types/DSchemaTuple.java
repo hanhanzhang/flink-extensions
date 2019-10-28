@@ -17,17 +17,17 @@ public class DSchemaTuple implements Serializable {
     schemaRecords = new HashMap<>();
   }
 
-  public void addProjectSchema(DProjectSchemaData projectSchema) {
+  public void addProjectSchema(DProjectSchema projectSchema) {
     schemaRecords.put(DSchemaType.PROJECT, JsonUtils.toJson(projectSchema));
   }
 
-  public DProjectSchemaData getProjectSchema() {
+  public DProjectSchema getProjectSchema() {
     String projectSchemaData = schemaRecords.get(DSchemaType.PROJECT);
     if (projectSchemaData == null) {
       return null;
     }
 
-    return JsonUtils.fromJson(projectSchemaData, DProjectSchemaData.class);
+    return JsonUtils.fromJson(projectSchemaData, DProjectSchema.class);
   }
 
 
