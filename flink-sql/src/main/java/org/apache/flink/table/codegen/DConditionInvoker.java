@@ -1,18 +1,18 @@
 package org.apache.flink.table.codegen;
 
-import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DConditionInvoker implements DRexInvoker<Boolean> {
+public class DConditionInvoker implements DRexFilterInvoker {
 
-  @Override
-  public Boolean invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
-    return null;
+  private final DRexFilterInvoker filterInvoker;
+
+  public DConditionInvoker(DRexFilterInvoker filterInvoker) {
+    this.filterInvoker = filterInvoker;
   }
 
   @Override
-  public SqlTypeName getResultType() {
-    return SqlTypeName.BOOLEAN;
+  public Boolean invoke(DRecordTuple recordTuple) throws DExpressionInvokeException {
+    return filterInvoker.invoke(recordTuple);
   }
 
 }

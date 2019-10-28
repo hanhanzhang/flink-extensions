@@ -1,5 +1,10 @@
 package org.apache.flink.table.codegen;
 
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.DIVIDE;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MINUS;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MOD;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MULTIPLY;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.PLUS;
 import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaType;
 
 import java.lang.reflect.Method;
@@ -26,6 +31,7 @@ import org.apache.calcite.rex.RexVisitor;
 import org.apache.calcite.sql.SqlFunction;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.flink.table.codegen.DFieldArithmeticInvoker.ArithmeticType;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.utils.ScalarSqlFunction;
 import org.apache.flink.table.functions.utils.UserDefinedFunctionUtils;
@@ -66,62 +72,88 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldInvoker>
 
   @Override
   public DProjectFieldInvoker visitLiteral(RexLiteral rexLiteral) {
-    return null;
+    // 常量
+    // TODO: 类型
+    String literalValue = String.valueOf(rexLiteral.getValue3());
+    DRexLiteralInvoker literalInvoker = new DRexLiteralInvoker(literalValue, rexLiteral.getType().getSqlTypeName());
+    return new DProjectFieldInvoker(literalInvoker);
   }
 
   @Override
   public DProjectFieldInvoker visitCall(RexCall rexCall) {
+    SqlTypeName resultType = rexCall.getType().getSqlTypeName();
     /*
-     * 1: 支持UDF解析
+     * 1: 算法表达式
      *
-     * 2: UDF仅支持ScalarSqlFunction
+     * 2: 支持UDF解析
      * */
     SqlOperator operator = rexCall.getOperator();
-
-    // 返回结果
-    SqlTypeName resultType = rexCall.getType().getSqlTypeName();
-    // 参数
-    final List<DRexInvoker<?>> parameterRexInvokes = new ArrayList<>();
-    final List<Class<?>> parameterClassTypes = new ArrayList<>();
-    for (RexNode rexNode : rexCall.getOperands()) {
-      DRexInvoker<?> expressionInvoker = rexNode.accept(this);
-      parameterRexInvokes.add(expressionInvoker);
-      parameterClassTypes.add(sqlTypeToJavaType(expressionInvoker.getResultType()));
+    // 算术
+    if (operator == PLUS ) {
+      List<RexNode> operands = rexCall.getOperands();
+      return generateArithmeticOperator(resultType, ArithmeticType.PLUS, operands, this);
+    }
+    else if (operator == MINUS) {
+      List<RexNode> operands = rexCall.getOperands();
+      return generateArithmeticOperator(resultType, ArithmeticType.MINUS, operands, this);
+    }
+    else if (operator == MULTIPLY) {
+      List<RexNode> operands = rexCall.getOperands();
+      return generateArithmeticOperator(resultType, ArithmeticType.MULTIPLY, operands, this);
+    }
+    else if (operator == DIVIDE) {
+      List<RexNode> operands = rexCall.getOperands();
+      return generateArithmeticOperator(resultType, ArithmeticType.DIVIDE, operands, this);
+    }
+    else if (operator == MOD) {
+      List<RexNode> operands = rexCall.getOperands();
+      return generateArithmeticOperator(resultType, ArithmeticType.MOD, operands, this);
     }
 
-    if (operator instanceof SqlFunction) {
-      SqlFunction function = (SqlFunction) operator;
-
-      if (function instanceof ScalarSqlFunction) {
-        ScalarSqlFunction ssf = (ScalarSqlFunction) function;
-        ScalarFunction scalarFunction = ssf.getScalarFunction();
-        Method[] methods = UserDefinedFunctionUtils.checkAndExtractMethods(scalarFunction, "eval");
-        // 根据参数个数, 参数类型, 选取Method
-        List<Method> userDefineMethods = Arrays.stream(methods)
-            .filter(method -> {
-              Class<?>[] parameterTypes = method.getParameterTypes();
-              if (parameterTypes.length != parameterClassTypes.size()) {
-                return false;
-              }
-              for (int i = 0; i < parameterTypes.length; ++i) {
-                if (parameterTypes[i] != parameterClassTypes.get(i)) {
-                  return false;
-                }
-              }
-              return true;
-            }).collect(Collectors.toList());
-
-        if (userDefineMethods.isEmpty()) {
-          throw new UserDefineFunctionNotFoundException(parameterClassTypes);
-        }
-
-        String className = ssf.getScalarFunction().getClass().getCanonicalName();
-        DSqlFunctionInvoker expressionInvoker = new DSqlFunctionInvoker(className, parameterRexInvokes, resultType);
-
-        return new DProjectFieldInvoker(expressionInvoker);
+    else {
+      // 自定义函数
+      final List<DRexInvoker<?>> parameterRexInvokes = new ArrayList<>();
+      final List<Class<?>> parameterClassTypes = new ArrayList<>();
+      for (RexNode rexNode : rexCall.getOperands()) {
+        DRexInvoker<?> expressionInvoker = rexNode.accept(this);
+        parameterRexInvokes.add(expressionInvoker);
+        parameterClassTypes.add(sqlTypeToJavaType(expressionInvoker.getResultType()));
       }
 
+      if (operator instanceof SqlFunction) {
+        SqlFunction function = (SqlFunction) operator;
+
+        if (function instanceof ScalarSqlFunction) {
+          ScalarSqlFunction ssf = (ScalarSqlFunction) function;
+          ScalarFunction scalarFunction = ssf.getScalarFunction();
+          Method[] methods = UserDefinedFunctionUtils.checkAndExtractMethods(scalarFunction, "eval");
+          // 根据参数个数, 参数类型, 选取Method
+          List<Method> userDefineMethods = Arrays.stream(methods)
+              .filter(method -> {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length != parameterClassTypes.size()) {
+                  return false;
+                }
+                for (int i = 0; i < parameterTypes.length; ++i) {
+                  if (parameterTypes[i] != parameterClassTypes.get(i)) {
+                    return false;
+                  }
+                }
+                return true;
+              }).collect(Collectors.toList());
+
+          if (userDefineMethods.isEmpty()) {
+            throw new UserDefineFunctionNotFoundException(parameterClassTypes);
+          }
+
+          String className = ssf.getScalarFunction().getClass().getCanonicalName();
+          DSqlFunctionInvoker expressionInvoker = new DSqlFunctionInvoker(className, parameterRexInvokes, resultType);
+
+          return new DProjectFieldInvoker(expressionInvoker);
+        }
+      }
     }
+
     throw new RuntimeException("Unsupported RexCall: " + rexCall.getOperator().getKind());
   }
 
@@ -165,4 +197,12 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldInvoker>
     return null;
   }
 
+  private static DProjectFieldInvoker generateArithmeticOperator(SqlTypeName resultType, ArithmeticType type,
+      List<RexNode> operands, RexVisitor<DProjectFieldInvoker> visitor) {
+    assert operands.size() == 2;
+    DProjectFieldInvoker left = operands.get(0).accept(visitor);
+    DProjectFieldInvoker right = operands.get(1).accept(visitor);
+    DFieldArithmeticInvoker fieldArithmeticInvoker = new DFieldArithmeticInvoker(resultType, type, left, right);
+    return new DProjectFieldInvoker(fieldArithmeticInvoker);
+  }
 }

@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.table.codegen.DConditionInvoker;
 import org.apache.flink.table.codegen.DProjectFieldInvoker;
 import org.apache.flink.table.codegen.DRexInputRefInvoker;
 import org.apache.flink.table.codegen.DRexInvoker;
@@ -30,10 +31,13 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
 
   private Map<String, DRexInvoker<String>> projectFieldInvokers;
 
-  public DStreamCalcProcessFunction(Map<String, DRexInvoker<String>> projectFieldInvokers) {
+  private DConditionInvoker conditionInvoker;
+
+  public DStreamCalcProcessFunction(Map<String, DRexInvoker<String>> projectFieldInvokers, DConditionInvoker conditionInvoker) {
     Preconditions.checkNotNull(projectFieldInvokers);
 
     this.projectFieldInvokers = projectFieldInvokers;
+    this.conditionInvoker = conditionInvoker;
   }
 
 
@@ -58,6 +62,10 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
   private void selectAndFilterStreamRecord(DStreamRecord streamRecord, Collector<DStreamRecord> out) {
     DRecordTuple recordTuple = streamRecord.recordTuple();
     // 过滤数据(Where条件)
+    if (conditionInvoker != null && !conditionInvoker.invoke(recordTuple)) {
+      System.err.println("Filter data: " + recordTuple);
+      return;
+    }
 
     // 映射字段
     // TODO: DProjectFunctionExpression 起别名问题, 下游也应该跟着改

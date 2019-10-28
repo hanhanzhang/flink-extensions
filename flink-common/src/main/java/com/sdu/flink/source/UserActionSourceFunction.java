@@ -23,11 +23,15 @@ public class UserActionSourceFunction extends RichParallelSourceFunction<UserAct
   @Override
   public void run(SourceContext<UserActionEntry> ctx) throws Exception {
     Random random = new Random();
+    int count = 0;
     while (running) {
       String uid = UUID.randomUUID().toString();
+//      int age = random.nextInt(100);
+      int age = 10;
+      boolean isForeigners = count++ % 2 == 0;
       String action = actions[random.nextInt(actions.length)];
       long timestamp = System.currentTimeMillis();
-      ctx.collectWithTimestamp(new UserActionEntry(uid, action, timestamp), timestamp);
+      ctx.collectWithTimestamp(new UserActionEntry(uid, age, isForeigners, action, timestamp), timestamp);
 
       safeSleep();
     }

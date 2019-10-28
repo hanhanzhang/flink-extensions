@@ -23,8 +23,8 @@ public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
   @Override
   public void run(SourceContext<DSchemaTuple> ctx) throws Exception {
     // TODO: 解析SQL
-    String[] fieldNames = new String[] {"uid", "action", "timestamp"};
-    String[] fieldTypes = new String[] {"String", "String", "String"};
+    String[] fieldNames = new String[] {"uid", "age", "isForeigners", "action", "timestamp"};
+    String[] fieldTypes = new String[] {"String", "Integer", "Boolean", "String", "Long"};
     int end = -1;
 
     while (running) {
@@ -32,6 +32,9 @@ public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
       if (shouldUpdate) {
         end += 1;
         int len = end % fieldNames.length;
+        if (len <= 1) {
+          len = 2;
+        }
 
         DSchemaTuple schemaTuple = new DSchemaTuple();
 
@@ -42,7 +45,7 @@ public class SchemaSourceFunction implements SourceFunction<DSchemaTuple> {
 
         schemaTuple.addProjectSchema(new DProjectSchema(nameToTypes));
 
-        ctx.collect(schemaTuple);
+//        ctx.collect(schemaTuple);
 
         lastCheckTimestamp = System.currentTimeMillis();
       }

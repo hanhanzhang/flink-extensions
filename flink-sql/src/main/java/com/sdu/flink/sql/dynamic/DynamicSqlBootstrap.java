@@ -30,21 +30,20 @@ public class DynamicSqlBootstrap {
     env.getConfig().setAutoWatermarkInterval(1000);
 
     StreamTableEnvironment tableEnv = DTableEnvironmentUtils.create(env);
-//    TableConfig config = tableEnv.getConfig();
-//    PlannerConfig plannerConfig = CalciteConfig.createBuilder()
-//        .replaceLogicalOptRuleSet(DynamicFlinkRuleSets.LOGICAL_OPT_RULES)
-//        .build();
-//    config.setPlannerConfig(plannerConfig);
 
     // TODO: 类型处理
     final Map<String, String> recordTypes = new HashMap<>();
     recordTypes.put("uid", "String");
+    recordTypes.put("age", "Integer");
+    recordTypes.put("isForeigners", "Boolean");
     recordTypes.put("action", "String");
-    recordTypes.put("timestamp", "String");
+    recordTypes.put("timestamp", "Long");
 
     // 数据源
     TableSchema tableSchema = TableSchema.builder()
         .field("uid", DataTypes.STRING())
+        .field("age", DataTypes.INT())
+        .field("isForeigners", DataTypes.BOOLEAN())
         .field("action", DataTypes.STRING())
         .field("timestamp", DataTypes.BIGINT())
         .build();
@@ -52,6 +51,8 @@ public class DynamicSqlBootstrap {
     MapFunction<UserActionEntry, DRecordTuple> mapFunction = (UserActionEntry entry) -> {
       Map<String, String> elements = new HashMap<>();
       elements.put("uid", entry.getUid());
+      elements.put("age", String.valueOf(entry.getAge()));
+      elements.put("isForeigners", String.valueOf(entry.isForeigners()));
       elements.put("action", entry.getAction());
       elements.put("timestamp", String.valueOf(entry.getTimestamp()));
       return new DRecordTuple(recordTypes, elements);
@@ -71,7 +72,7 @@ public class DynamicSqlBootstrap {
     tableEnv.registerTableSink("user_behavior", new SimplePrintDTableSink(tableSchema));
 
 
-    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as userId, action FROM user_action where action <> 'Login' and uid <> '1'";
+    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as userId, age + 1 as age, isForeigners, action FROM user_action where action <> 'Login' and uid <> '1'";
 
     tableEnv.sqlUpdate(sqlText);
 
