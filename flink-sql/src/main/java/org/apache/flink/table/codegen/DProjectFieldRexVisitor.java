@@ -36,19 +36,16 @@ import org.apache.flink.table.functions.utils.UserDefinedFunctionUtils;
  *
  * @author hanhan.zhang
  * **/
-public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpression> {
+public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldInvoker> {
 
   private final List<RelDataTypeField> relFieldDataTypes;
 
-  private String projectFieldName;
-
-  public DProjectFieldRexVisitor(RelDataType relDataType, String projectFieldName) {
+  public DProjectFieldRexVisitor(RelDataType relDataType) {
     relFieldDataTypes = relDataType.getFieldList();
-    this.projectFieldName = projectFieldName;
   }
 
   @Override
-  public DProjectFieldDExpression visitInputRef(RexInputRef rexInputRef) {
+  public DProjectFieldInvoker visitInputRef(RexInputRef rexInputRef) {
     int index = rexInputRef.getIndex();
     if (index >= relFieldDataTypes.size()) {
       throw new ArrayIndexOutOfBoundsException("Project select field index error, index: " + index);
@@ -56,24 +53,24 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
 
     RelDataTypeField fieldDataType = relFieldDataTypes.get(index);
 
-    DSimpleProjectFieldExpressionInvoker expressionInvoker = new DSimpleProjectFieldExpressionInvoker(fieldDataType.getName(),
+    DRexInputRefInvoker expressionInvoker = new DRexInputRefInvoker(fieldDataType.getName(),
         fieldDataType.getType().getSqlTypeName());
 
-    return new DProjectFieldDExpression(expressionInvoker);
+    return new DProjectFieldInvoker(expressionInvoker);
   }
 
   @Override
-  public DProjectFieldDExpression visitLocalRef(RexLocalRef rexLocalRef) {
+  public DProjectFieldInvoker visitLocalRef(RexLocalRef rexLocalRef) {
     throw new CodeGenException("Local variables are not supported yet.");
   }
 
   @Override
-  public DProjectFieldDExpression visitLiteral(RexLiteral rexLiteral) {
+  public DProjectFieldInvoker visitLiteral(RexLiteral rexLiteral) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitCall(RexCall rexCall) {
+  public DProjectFieldInvoker visitCall(RexCall rexCall) {
     /*
      * 1: 支持UDF解析
      *
@@ -84,11 +81,11 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
     // 返回结果
     SqlTypeName resultType = rexCall.getType().getSqlTypeName();
     // 参数
-    final List<DExpressionInvoker<?>> parameterExpressionInvokes = new ArrayList<>();
+    final List<DRexInvoker<?>> parameterRexInvokes = new ArrayList<>();
     final List<Class<?>> parameterClassTypes = new ArrayList<>();
     for (RexNode rexNode : rexCall.getOperands()) {
-      DExpressionInvoker<?> expressionInvoker = rexNode.accept(this);
-      parameterExpressionInvokes.add(expressionInvoker);
+      DRexInvoker<?> expressionInvoker = rexNode.accept(this);
+      parameterRexInvokes.add(expressionInvoker);
       parameterClassTypes.add(sqlTypeToJavaType(expressionInvoker.getResultType()));
     }
 
@@ -119,10 +116,9 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
         }
 
         String className = ssf.getScalarFunction().getClass().getCanonicalName();
-        DProjectFunctionDExpressionInvoker expressionInvoker = new DProjectFunctionDExpressionInvoker(className,
-            parameterExpressionInvokes, projectFieldName, resultType);
+        DSqlFunctionInvoker expressionInvoker = new DSqlFunctionInvoker(className, parameterRexInvokes, resultType);
 
-        return new DProjectFieldDExpression(expressionInvoker);
+        return new DProjectFieldInvoker(expressionInvoker);
       }
 
     }
@@ -130,42 +126,42 @@ public class DProjectFieldRexVisitor implements RexVisitor<DProjectFieldDExpress
   }
 
   @Override
-  public DProjectFieldDExpression visitOver(RexOver rexOver) {
+  public DProjectFieldInvoker visitOver(RexOver rexOver) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
+  public DProjectFieldInvoker visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitDynamicParam(RexDynamicParam rexDynamicParam) {
+  public DProjectFieldInvoker visitDynamicParam(RexDynamicParam rexDynamicParam) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitRangeRef(RexRangeRef rexRangeRef) {
+  public DProjectFieldInvoker visitRangeRef(RexRangeRef rexRangeRef) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitFieldAccess(RexFieldAccess rexFieldAccess) {
+  public DProjectFieldInvoker visitFieldAccess(RexFieldAccess rexFieldAccess) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitSubQuery(RexSubQuery rexSubQuery) {
+  public DProjectFieldInvoker visitSubQuery(RexSubQuery rexSubQuery) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitTableInputRef(RexTableInputRef rexTableInputRef) {
+  public DProjectFieldInvoker visitTableInputRef(RexTableInputRef rexTableInputRef) {
     return null;
   }
 
   @Override
-  public DProjectFieldDExpression visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
+  public DProjectFieldInvoker visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
     return null;
   }
 

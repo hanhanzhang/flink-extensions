@@ -55,31 +55,31 @@ import org.apache.calcite.rex.RexTableInputRef;
 import org.apache.calcite.rex.RexVisitor;
 import org.apache.calcite.sql.SqlOperator;
 
-public class ConditionRexVisitor implements RexVisitor<ConditionDExpression> {
+public class ConditionRexVisitor implements RexVisitor<DConditionInvoker> {
 
-  private List<ConditionDExpression> conditionExpressions;
+  private List<DConditionInvoker> conditionExpressions;
 
-  public ConditionRexVisitor(List<ConditionDExpression> conditionExpressions) {
+  public ConditionRexVisitor(List<DConditionInvoker> conditionExpressions) {
     this.conditionExpressions = conditionExpressions;
   }
 
   @Override
-  public ConditionDExpression visitInputRef(RexInputRef rexInputRef) {
+  public DConditionInvoker visitInputRef(RexInputRef rexInputRef) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitLocalRef(RexLocalRef rexLocalRef) {
+  public DConditionInvoker visitLocalRef(RexLocalRef rexLocalRef) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitLiteral(RexLiteral rexLiteral) {
+  public DConditionInvoker visitLiteral(RexLiteral rexLiteral) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitCall(RexCall rexCall) {
+  public DConditionInvoker visitCall(RexCall rexCall) {
     SqlOperator operator = rexCall.getOperator();
 
     // 算数表达式
@@ -174,42 +174,42 @@ public class ConditionRexVisitor implements RexVisitor<ConditionDExpression> {
   }
 
   @Override
-  public ConditionDExpression visitOver(RexOver rexOver) {
+  public DConditionInvoker visitOver(RexOver rexOver) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
+  public DConditionInvoker visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitDynamicParam(RexDynamicParam rexDynamicParam) {
+  public DConditionInvoker visitDynamicParam(RexDynamicParam rexDynamicParam) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitRangeRef(RexRangeRef rexRangeRef) {
+  public DConditionInvoker visitRangeRef(RexRangeRef rexRangeRef) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitFieldAccess(RexFieldAccess rexFieldAccess) {
+  public DConditionInvoker visitFieldAccess(RexFieldAccess rexFieldAccess) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitSubQuery(RexSubQuery rexSubQuery) {
+  public DConditionInvoker visitSubQuery(RexSubQuery rexSubQuery) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitTableInputRef(RexTableInputRef rexTableInputRef) {
+  public DConditionInvoker visitTableInputRef(RexTableInputRef rexTableInputRef) {
     return null;
   }
 
   @Override
-  public ConditionDExpression visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
+  public DConditionInvoker visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
     return null;
   }
 }

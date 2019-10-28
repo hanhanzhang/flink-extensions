@@ -8,23 +8,20 @@ import java.util.List;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DProjectFunctionDExpressionInvoker implements DProjectFieldExpressionInvoker {
+public class DSqlFunctionInvoker implements DRexInvoker<String> {
 
   private static final String DEFAULT_METHOD_NAME = "eval";
 
   private final String className;
 
-  private final String resultFieldName;
   private final SqlTypeName resultType;
 
-  private final List<DExpressionInvoker<?>> parameterExpressionInvokes;
+  private final List<DRexInvoker<?>> parameterRexInvokes;
 
-  DProjectFunctionDExpressionInvoker(String className, List<DExpressionInvoker<?>> parameterExpressionInvokes, String resultFieldName,
-      SqlTypeName resultType) {
+  DSqlFunctionInvoker(String className, List<DRexInvoker<?>> parameterRexInvokes, SqlTypeName resultType) {
     this.className = className;
-    this.parameterExpressionInvokes = parameterExpressionInvokes;
+    this.parameterRexInvokes = parameterRexInvokes;
     this.resultType = resultType;
-    this.resultFieldName = resultFieldName;
   }
 
 
@@ -33,15 +30,15 @@ public class DProjectFunctionDExpressionInvoker implements DProjectFieldExpressi
     // TODO: 没必要都要构造Method, Method修饰目前支持静态方法, Method.open()
     try {
       Class<?> cls = Class.forName(className);
-      Class<?>[] paramTypes = new Class[parameterExpressionInvokes.size()];
+      Class<?>[] paramTypes = new Class[parameterRexInvokes.size()];
       for (int i = 0; i < paramTypes.length; ++i) {
-        paramTypes[i] = sqlTypeToJavaType(parameterExpressionInvokes.get(i).getResultType());
+        paramTypes[i] = sqlTypeToJavaType(parameterRexInvokes.get(i).getResultType());
       }
       Method method = cls.getMethod(DEFAULT_METHOD_NAME, paramTypes);
 
-      Object[] params = new Object[parameterExpressionInvokes.size()];
+      Object[] params = new Object[parameterRexInvokes.size()];
       for (int i = 0; i < params.length; ++i) {
-        params[i] = parameterExpressionInvokes.get(i).invoke(recordTuple);
+        params[i] = parameterRexInvokes.get(i).invoke(recordTuple);
       }
       // TODO: 强转string?
       return String.valueOf(method.invoke(null, params));
@@ -54,11 +51,6 @@ public class DProjectFunctionDExpressionInvoker implements DProjectFieldExpressi
   @Override
   public SqlTypeName getResultType() {
     return resultType;
-  }
-
-  @Override
-  public String getProjectFieldName() {
-    return resultFieldName;
   }
 
 }

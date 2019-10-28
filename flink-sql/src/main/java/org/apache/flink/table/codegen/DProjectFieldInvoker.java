@@ -3,7 +3,7 @@ package org.apache.flink.table.codegen;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DProjectFieldDExpression implements DProjectFieldExpressionInvoker {
+public class DProjectFieldInvoker implements DRexInvoker<String> {
 
   /*
    * 结果类型:
@@ -12,9 +12,9 @@ public class DProjectFieldDExpression implements DProjectFieldExpressionInvoker 
    *
    * 2: 若是UDF调用, 则返回UDF调用结果类型
    * */
-  private DProjectFieldExpressionInvoker expressionInvoker;
+  private DRexInvoker<String> expressionInvoker;
 
-  DProjectFieldDExpression(DProjectFieldExpressionInvoker expressionInvoker) {
+  DProjectFieldInvoker(DRexInvoker expressionInvoker) {
     this.expressionInvoker = expressionInvoker;
   }
 
@@ -28,8 +28,4 @@ public class DProjectFieldDExpression implements DProjectFieldExpressionInvoker 
     return expressionInvoker.getResultType();
   }
 
-  @Override
-  public String getProjectFieldName() {
-    return expressionInvoker.getProjectFieldName();
-  }
 }

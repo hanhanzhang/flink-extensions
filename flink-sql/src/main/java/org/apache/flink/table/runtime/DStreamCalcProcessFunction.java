@@ -3,10 +3,10 @@ package org.apache.flink.table.runtime;
 import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaTypeAsString;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.table.codegen.DProjectFieldDExpression;
+import org.apache.flink.table.codegen.DRexInvoker;
 import org.apache.flink.types.DConditionSchema;
 import org.apache.flink.types.DProjectSchemaData;
 import org.apache.flink.types.DRecordTuple;
@@ -17,12 +17,12 @@ import org.apache.flink.util.Preconditions;
 
 public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, DStreamRecord> {
 
-  private List<DProjectFieldDExpression> projectFieldExpressions;
+  private Map<String, DRexInvoker<String>> projectFieldInvokers;
 
-  public DStreamCalcProcessFunction(List<DProjectFieldDExpression> projectExpressions) {
-    Preconditions.checkNotNull(projectExpressions);
+  public DStreamCalcProcessFunction(Map<String, DRexInvoker<String>> projectFieldInvokers) {
+    Preconditions.checkNotNull(projectFieldInvokers);
 
-    this.projectFieldExpressions = projectExpressions;
+    this.projectFieldInvokers = projectFieldInvokers;
   }
 
 
@@ -52,12 +52,12 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     // TODO: DProjectFunctionExpression 起别名问题, 下游也应该跟着改
     Map<String, String> recordTypes = new HashMap<>();
     Map<String, String> recordValues = new HashMap<>();
-    for (DProjectFieldDExpression expression : projectFieldExpressions) {
-      String newFieldName = expression.getProjectFieldName();
-      String newFieldType = sqlTypeToJavaTypeAsString(expression.getResultType());
+    for (Entry<String, DRexInvoker<String>> entry : projectFieldInvokers.entrySet()) {
+      String newFieldName = entry.getKey();
+      String newFieldType = sqlTypeToJavaTypeAsString(entry.getValue().getResultType());
       recordTypes.put(newFieldName, newFieldType);
 
-      String value = expression.invoke(recordTuple);
+      String value = entry.getValue().invoke(recordTuple);
       recordValues.put(newFieldName, value);
     }
 

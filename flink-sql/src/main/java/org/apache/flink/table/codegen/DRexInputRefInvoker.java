@@ -3,12 +3,12 @@ package org.apache.flink.table.codegen;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DSimpleProjectFieldExpressionInvoker implements DProjectFieldExpressionInvoker {
+public class DRexInputRefInvoker implements DRexInvoker {
 
   private final String fieldName;
   private final SqlTypeName resultType;
 
-  public DSimpleProjectFieldExpressionInvoker(String fieldName,  SqlTypeName resultType) {
+  DRexInputRefInvoker(String fieldName,  SqlTypeName resultType) {
     this.fieldName = fieldName;
     this.resultType = resultType;
   }
@@ -21,11 +21,6 @@ public class DSimpleProjectFieldExpressionInvoker implements DProjectFieldExpres
   @Override
   public SqlTypeName getResultType() {
     return resultType;
-  }
-
-  @Override
-  public String getProjectFieldName() {
-    return fieldName;
   }
 
 }

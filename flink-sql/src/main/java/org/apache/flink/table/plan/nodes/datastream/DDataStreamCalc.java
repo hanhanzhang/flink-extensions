@@ -1,8 +1,9 @@
 package org.apache.flink.table.plan.nodes.datastream;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
@@ -11,13 +12,14 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLocalRef;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.util.Pair;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
-import org.apache.flink.table.codegen.ConditionDExpression;
 import org.apache.flink.table.codegen.ConditionRexVisitor;
-import org.apache.flink.table.codegen.DProjectFieldDExpression;
+import org.apache.flink.table.codegen.DConditionInvoker;
 import org.apache.flink.table.codegen.DProjectFieldRexVisitor;
+import org.apache.flink.table.codegen.DRexInvoker;
 import org.apache.flink.table.delegation.DStreamPlanner;
 import org.apache.flink.table.runtime.DStreamCalcProcessFunction;
 import org.apache.flink.types.DStreamRecord;
@@ -46,7 +48,7 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
     DataStream<DStreamRecord> inputDataStream = inputRelNode.translateToSqlElement(tableEnv, queryConfig);
 
     // condition
-    List<ConditionDExpression> conditionExpressions;
+    List<DConditionInvoker> conditionExpressions;
     if (program.getCondition() != null) {
       RexNode rexNode = program.expandLocalRef(program.getCondition());
       conditionExpressions = new LinkedList<>();
@@ -55,16 +57,15 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
     }
 
     // projection
-    final List<DProjectFieldDExpression> projectFieldExpressions = new ArrayList<>();
-    int i = 0;
-    for (RexLocalRef ref : program.getProjectList()) {
-      String outputProjectFieldName = program.getOutputRowType().getFieldList().get(i++).getName();
-      final DProjectFieldRexVisitor projectFieldRexVisitor = new DProjectFieldRexVisitor(deriveRowType(), outputProjectFieldName);
-      RexNode rexNode = program.expandLocalRef(ref);
-      projectFieldExpressions.add(rexNode.accept(projectFieldRexVisitor));
+    final DProjectFieldRexVisitor projectFieldRexVisitor = new DProjectFieldRexVisitor(deriveRowType());
+    final Map<String, DRexInvoker<String>> projectFields = new HashMap<>();
+    for (int i = 0; i < program.getNamedProjects().size(); ++i) {
+      Pair<RexLocalRef, String> rexLocalRefAndName = program.getNamedProjects().get(i);
+      RexNode rexNode = program.expandLocalRef(rexLocalRefAndName.left);
+      projectFields.put(rexLocalRefAndName.right, rexNode.accept(projectFieldRexVisitor));
     }
 
-    return inputDataStream.process(new DStreamCalcProcessFunction(projectFieldExpressions))
+    return inputDataStream.process(new DStreamCalcProcessFunction(projectFields))
         .setParallelism(inputDataStream.getParallelism())
         .returns(TypeInformation.of(DStreamRecord.class));
 
