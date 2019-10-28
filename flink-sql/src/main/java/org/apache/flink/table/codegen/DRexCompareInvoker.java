@@ -16,13 +16,13 @@ import org.apache.flink.types.DRecordTuple;
 @Internal
 public class DRexCompareInvoker implements DRexFilterInvoker {
 
-  private final DRexInvoker<?> left;
+  private final DRexInvoker left;
 
   private final RexCompareType type;
 
-  private final DRexInvoker<?> right;
+  private final DRexInvoker right;
 
-  DRexCompareInvoker(DRexInvoker<?> left, RexCompareType type, DRexInvoker<?> right) {
+  DRexCompareInvoker(DRexInvoker left, RexCompareType type, DRexInvoker right) {
     this.left = left;
     this.type = type;
     this.right = right;
@@ -31,22 +31,22 @@ public class DRexCompareInvoker implements DRexFilterInvoker {
   @Override
   public Boolean invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     // TODO: 2019-10-28 类型处理
-    String leftField = (String) left.invoke(recordTuple);
-    String rightField = (String) right.invoke(recordTuple);
+    Object leftField = left.invoke(recordTuple);
+    Object rightField = right.invoke(recordTuple);
 
     switch (type) {
       case EQUALS:
         return leftField != null && leftField.equals(rightField);
       case NOT_EQUALS:
         return leftField != null && !leftField.equals(rightField);
-      case GREATER_THAN:
+     /* case GREATER_THAN:
         return leftField != null && leftField.compareTo(rightField) > 0;
       case GREATER_THAN_OR_EQUAL:
         return leftField != null && leftField.compareTo(rightField) >= 0;
       case LESS_THAN:
         return leftField != null && leftField.compareTo(rightField) < 0;
       case LESS_THAN_OR_EQUAL:
-        return leftField != null && leftField.compareTo(rightField) <= 0;
+        return leftField != null && leftField.compareTo(rightField) <= 0;*/
       case IS_NOT_NULL:
         return leftField != null;
       case IS_NULL:

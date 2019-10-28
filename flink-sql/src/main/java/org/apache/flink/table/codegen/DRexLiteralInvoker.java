@@ -3,7 +3,7 @@ package org.apache.flink.table.codegen;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DRexLiteralInvoker implements DRexInvoker<String> {
+public class DRexLiteralInvoker implements DRexInvoker {
 
   private final Object literalValue;
   private final SqlTypeName resultType;
@@ -14,9 +14,8 @@ public class DRexLiteralInvoker implements DRexInvoker<String> {
   }
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
-    // TODO: 2019-10-28 类型处理
-    return String.valueOf(literalValue);
+  public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
+    return literalValue;
   }
 
   @Override

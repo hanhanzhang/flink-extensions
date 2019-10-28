@@ -10,9 +10,9 @@ public class DRexLogicalInvoker implements DRexFilterInvoker {
 
   private final RexLogicalType rexLogicalType;
 
-  private List<DRexInvoker<?>> operatorInvokers;
+  private List<DRexInvoker> operatorInvokers;
 
-  DRexLogicalInvoker(RexLogicalType rexLogicalType, List<DRexInvoker<?>> operatorInvokers) {
+  DRexLogicalInvoker(RexLogicalType rexLogicalType, List<DRexInvoker> operatorInvokers) {
     this.rexLogicalType = rexLogicalType;
     this.operatorInvokers = operatorInvokers;
   }
@@ -21,7 +21,7 @@ public class DRexLogicalInvoker implements DRexFilterInvoker {
   public Boolean invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     switch (rexLogicalType) {
       case AND:
-        for (DRexInvoker<?> invoker : operatorInvokers) {
+        for (DRexInvoker invoker : operatorInvokers) {
           Boolean result = (Boolean) invoker.invoke(recordTuple);
           if (!result) {
             return false;
@@ -29,7 +29,7 @@ public class DRexLogicalInvoker implements DRexFilterInvoker {
         }
         return true;
       case OR:
-        for (DRexInvoker<?> invoker : operatorInvokers) {
+        for (DRexInvoker invoker : operatorInvokers) {
           Boolean result = (Boolean) invoker.invoke(recordTuple);
           if (result) {
             return true;

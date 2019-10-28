@@ -42,7 +42,7 @@ import org.apache.calcite.rex.RexVisitor;
 import org.apache.calcite.sql.SqlFunction;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.flink.table.codegen.DFieldArithmeticInvoker.ArithmeticType;
+import org.apache.flink.table.codegen.DArithmeticExpressionInvoker.ArithmeticType;
 import org.apache.flink.table.codegen.DRexCompareInvoker.RexCompareType;
 import org.apache.flink.table.codegen.DRexLogicalInvoker.RexLogicalType;
 import org.apache.flink.table.functions.ScalarFunction;
@@ -53,7 +53,7 @@ import org.apache.flink.table.functions.utils.UserDefinedFunctionUtils;
  *
  * @author hanhan.zhang
  * **/
-public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
+public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
 
   private final List<RelDataTypeField> relFieldDataTypes;
 
@@ -62,7 +62,7 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
   }
 
   @Override
-  public DRexInvoker<?> visitInputRef(RexInputRef rexInputRef) {
+  public DRexInvoker visitInputRef(RexInputRef rexInputRef) {
     /*
      * SQL两种表达式:
      *
@@ -87,12 +87,12 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
   }
 
   @Override
-  public DRexInvoker<?> visitLocalRef(RexLocalRef rexLocalRef) {
+  public DRexInvoker visitLocalRef(RexLocalRef rexLocalRef) {
     throw new DRexUnsupportedException("Local variables are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitLiteral(RexLiteral rexLiteral) {
+  public DRexInvoker visitLiteral(RexLiteral rexLiteral) {
     /*
      * 常量解析:
      *
@@ -107,7 +107,7 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
   }
 
   @Override
-  public DRexInvoker<?> visitCall(RexCall rexCall) {
+  public DRexInvoker visitCall(RexCall rexCall) {
     /*
      * 解析SQL表达式
      *
@@ -213,10 +213,10 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
 
     else {
       // 自定义函数
-      final List<DRexInvoker<?>> parameterRexInvokes = new ArrayList<>();
+      final List<DRexInvoker> parameterRexInvokes = new ArrayList<>();
       final List<Class<?>> parameterClassTypes = new ArrayList<>();
       for (RexNode rexNode : rexCall.getOperands()) {
-        DRexInvoker<?> expressionInvoker = rexNode.accept(this);
+        DRexInvoker expressionInvoker = rexNode.accept(this);
         parameterRexInvokes.add(expressionInvoker);
         parameterClassTypes.add(sqlTypeToJavaType(expressionInvoker.getResultType()));
       }
@@ -248,9 +248,7 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
           }
 
           String className = ssf.getScalarFunction().getClass().getCanonicalName();
-          DSqlFunctionInvoker expressionInvoker = new DSqlFunctionInvoker(className, parameterRexInvokes, resultType);
-
-          return new DProjectFieldInvoker(expressionInvoker);
+          return new DSqlFunctionInvoker(className, parameterRexInvokes, resultType);
         }
       }
     }
@@ -259,72 +257,72 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker<?>> {
   }
 
   @Override
-  public DRexInvoker<?> visitOver(RexOver rexOver) {
+  public DRexInvoker visitOver(RexOver rexOver) {
     throw new DRexUnsupportedException("Aggregate functions over windows are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
+  public DRexInvoker visitCorrelVariable(RexCorrelVariable rexCorrelVariable) {
     // TODO: 2019-10-28
     throw new DRexUnsupportedException("Correl  variable are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitDynamicParam(RexDynamicParam rexDynamicParam) {
+  public DRexInvoker visitDynamicParam(RexDynamicParam rexDynamicParam) {
     throw new DRexUnsupportedException("Dynamic parameter references are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitRangeRef(RexRangeRef rexRangeRef) {
+  public DRexInvoker visitRangeRef(RexRangeRef rexRangeRef) {
     throw new DRexUnsupportedException("Range references are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitFieldAccess(RexFieldAccess rexFieldAccess) {
+  public DRexInvoker visitFieldAccess(RexFieldAccess rexFieldAccess) {
     // TODO: 2019-10-28
     throw new DRexUnsupportedException("Field access are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitSubQuery(RexSubQuery rexSubQuery) {
+  public DRexInvoker visitSubQuery(RexSubQuery rexSubQuery) {
     throw new DRexUnsupportedException("SubQuery are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitTableInputRef(RexTableInputRef rexTableInputRef) {
+  public DRexInvoker visitTableInputRef(RexTableInputRef rexTableInputRef) {
     // TODO: 2019-10-28
     throw new DRexUnsupportedException("Table input references are not supported yet.");
   }
 
   @Override
-  public DRexInvoker<?> visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
+  public DRexInvoker visitPatternFieldRef(RexPatternFieldRef rexPatternFieldRef) {
     throw new DRexUnsupportedException("Pattern field references are not supported yet.");
   }
 
-  private static DRexInvoker<?> generateArithmeticOperator(SqlTypeName resultType, ArithmeticType type,
-      List<RexNode> operands, RexVisitor<DRexInvoker<?>> visitor) {
+  private static DRexInvoker generateArithmeticOperator(SqlTypeName resultType, ArithmeticType type,
+      List<RexNode> operands, RexVisitor<DRexInvoker> visitor) {
     assert operands.size() == 2;
-    DRexInvoker<?> left = operands.get(0).accept(visitor);
-    DRexInvoker<?> right = operands.get(1).accept(visitor);
-    return new DFieldArithmeticInvoker(resultType, type, left, right);
+    DRexInvoker left = operands.get(0).accept(visitor);
+    DRexInvoker right = operands.get(1).accept(visitor);
+    return new DArithmeticExpressionInvoker(resultType, type, left, right);
   }
 
-  private static DRexInvoker<Boolean> generateCompareExpression(List<RexNode> operands, RexCompareType type, RexVisitor<DRexInvoker<?>> visitor) {
+  private static DRexInvoker generateCompareExpression(List<RexNode> operands, RexCompareType type, RexVisitor<DRexInvoker> visitor) {
     assert operands.size() == 2;
-    DRexInvoker<?> left = operands.get(0).accept(visitor);
-    DRexInvoker<?> right = operands.get(1).accept(visitor);
+    DRexInvoker left = operands.get(0).accept(visitor);
+    DRexInvoker right = operands.get(1).accept(visitor);
     return new DRexCompareInvoker(left, type, right);
   }
 
-  private static DRexInvoker<Boolean> generateCompareExpression(RexNode operand, RexCompareType type, RexVisitor<DRexInvoker<?>> visitor) {
-    DRexInvoker<?> left = operand.accept(visitor);
+  private static DRexInvoker generateCompareExpression(RexNode operand, RexCompareType type, RexVisitor<DRexInvoker> visitor) {
+    DRexInvoker left = operand.accept(visitor);
     return new DRexCompareInvoker(left, type, null);
   }
 
-  private static DRexInvoker<Boolean> generateLogicalExpression(List<RexNode> operands, RexLogicalType type, RexVisitor<DRexInvoker<?>> visitor) {
+  private static DRexInvoker generateLogicalExpression(List<RexNode> operands, RexLogicalType type, RexVisitor<DRexInvoker> visitor) {
     assert operands.size() == 2;
 
-    List<DRexInvoker<?>> filterInvokers = new ArrayList<>();
+    List<DRexInvoker> filterInvokers = new ArrayList<>();
     for (RexNode operand : operands) {
       filterInvokers.add(operand.accept(visitor));
     }

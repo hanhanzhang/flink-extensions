@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -27,11 +28,11 @@ import org.apache.flink.util.Preconditions;
 
 public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, DStreamRecord> {
 
-  private Map<String, DRexInvoker<?>> projectFieldInvokers;
+  private Map<String, DRexInvoker> projectFieldInvokers;
 
-  private DRexInvoker<Boolean> conditionInvoker;
+  private DRexInvoker conditionInvoker;
 
-  public DStreamCalcProcessFunction(Map<String, DRexInvoker<?>> projectFieldInvokers, DRexInvoker<Boolean> conditionInvoker) {
+  public DStreamCalcProcessFunction(Map<String, DRexInvoker> projectFieldInvokers, DRexInvoker conditionInvoker) {
     Preconditions.checkNotNull(projectFieldInvokers);
 
     this.projectFieldInvokers = projectFieldInvokers;
@@ -59,8 +60,10 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
 
   private void selectAndFilterStreamRecord(DStreamRecord streamRecord, Collector<DStreamRecord> out) {
     DRecordTuple recordTuple = streamRecord.recordTuple();
+
+    assert conditionInvoker.getResultType() == SqlTypeName.BOOLEAN;
     // 过滤数据(Where条件)
-    if (conditionInvoker != null && !conditionInvoker.invoke(recordTuple)) {
+    if (conditionInvoker != null && !((Boolean) conditionInvoker.invoke(recordTuple))) {
       System.err.println("Filter data: " + recordTuple);
       return;
     }
@@ -68,7 +71,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     // 映射字段
     Map<String, String> recordTypes = new HashMap<>();
     Map<String, String> recordValues = new HashMap<>();
-    for (Entry<String, DRexInvoker<?>> entry : projectFieldInvokers.entrySet()) {
+    for (Entry<String, DRexInvoker> entry : projectFieldInvokers.entrySet()) {
       String newFieldName = entry.getKey();
       String newFieldType = sqlTypeToJavaTypeAsString(entry.getValue().getResultType());
       recordTypes.put(newFieldName, newFieldType);
@@ -95,7 +98,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     if (projectSchema != null) {
       Map<String, DProjectFieldInfo> inputProjectFields = projectSchema.getInputProjectFields();
       if (MapUtils.isNotEmpty(inputProjectFields)) {
-        Map<String, DRexInvoker<?>> projectFieldInvokers = new HashMap<>();
+        Map<String, DRexInvoker> projectFieldInvokers = new HashMap<>();
 
         for (Entry<String, DProjectFieldInfo> entry : inputProjectFields.entrySet()) {
           // outputFieldName 可能是别名, 如 udf(field_name) as new_name
@@ -105,7 +108,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
           //
           if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
             DFuncProjectFieldInfo funcProjectFieldInfo = (DFuncProjectFieldInfo) projectFieldInfo;
-            List<DRexInvoker<?>> parameterRexInvokes = fromFuncProjectFieldInfo(funcProjectFieldInfo);
+            List<DRexInvoker> parameterRexInvokes = fromFuncProjectFieldInfo(funcProjectFieldInfo);
             DSqlFunctionInvoker sqlFunctionInvoker = new DSqlFunctionInvoker(funcProjectFieldInfo.getClassName(),
                 parameterRexInvokes, javaTypeToSqlType(funcProjectFieldInfo.getFieldType()));
             projectFieldInvokers.put(outputFieldName, sqlFunctionInvoker);
@@ -131,13 +134,13 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     out.collect(streamRecord);
   }
 
-  private static List<DRexInvoker<?>> fromFuncProjectFieldInfo(DFuncProjectFieldInfo funcProjectFieldInfo) {
+  private static List<DRexInvoker> fromFuncProjectFieldInfo(DFuncProjectFieldInfo funcProjectFieldInfo) {
     List<DProjectFieldInfo> projectFieldInfos = funcProjectFieldInfo.getParameterProjectFields();
     if (CollectionUtils.isEmpty(projectFieldInfos)) {
       return Collections.emptyList();
     }
 
-    List<DRexInvoker<?>> rexInvokers = new ArrayList<>();
+    List<DRexInvoker> rexInvokers = new ArrayList<>();
     for (DProjectFieldInfo projectFieldInfo : projectFieldInfos) {
       if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
         rexInvokers.addAll(fromFuncProjectFieldInfo((DFuncProjectFieldInfo) projectFieldInfo));

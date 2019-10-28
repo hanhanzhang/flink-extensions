@@ -10,14 +10,14 @@ import static org.apache.calcite.sql.type.SqlTypeName.TINYINT;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
-public class DFieldArithmeticInvoker implements DRexInvoker<String> {
+public class DArithmeticExpressionInvoker implements DRexInvoker {
 
   private final SqlTypeName resultType;
   private final ArithmeticType arithmeticType;
-  private final DRexInvoker<?> left;
-  private final DRexInvoker<?> right;
+  private final DRexInvoker left;
+  private final DRexInvoker right;
 
-  DFieldArithmeticInvoker(SqlTypeName resultType, ArithmeticType arithmeticType, DRexInvoker<?> left, DRexInvoker<?> right) {
+  DArithmeticExpressionInvoker(SqlTypeName resultType, ArithmeticType arithmeticType, DRexInvoker left, DRexInvoker right) {
     this.resultType = resultType;
     this.arithmeticType = arithmeticType;
     this.left = left;
@@ -25,7 +25,7 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
   }
 
   @Override
-  public String invoke(DRecordTuple recordTuple) throws DRexInvokeException {
+  public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
     if (!isNumeric(left.getResultType())) {
       throw new DRexInvokeException("SqlTypeName should be number type, type: " + left.getResultType());
     }
@@ -34,71 +34,65 @@ public class DFieldArithmeticInvoker implements DRexInvoker<String> {
       throw new DRexInvokeException("SqlTypeName should be number type, type: " + right.getResultType());
     }
 
-    // TODO: 2019-10-28
-    String leftFieldValue = (String) left.invoke(recordTuple);
-    String rightFieldValue = (String) right.invoke(recordTuple);
+    Object leftValue = left.invoke(recordTuple);
+    Object rightValue = right.invoke(recordTuple);
 
     switch (arithmeticType) {
       case MINUS:
         if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
-          double leftValue = Double.parseDouble(leftFieldValue);
-          double rightValue = Double.parseDouble(rightFieldValue);
-
-          return String.valueOf(leftValue - rightValue);
+          double lv = ((Number) leftValue).doubleValue();
+          double rv = ((Number) rightValue).doubleValue();
+          return lv - rv;
         } else {
-          int leftValue = Integer.parseInt(leftFieldValue);
-          int rightValue = Integer.parseInt(rightFieldValue);
+          int lv = ((Number) leftValue).intValue();
+          double rv = ((Number) rightValue).intValue();
 
-          return String.valueOf(leftValue - rightValue);
+          return lv - rv;
         }
       case PLUS:
         if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
-          double leftValue = Double.parseDouble(leftFieldValue);
-          double rightValue = Double.parseDouble(rightFieldValue);
-
-          return String.valueOf(leftValue + rightValue);
+          double lv = ((Number) leftValue).doubleValue();
+          double rv = ((Number) rightValue).doubleValue();
+          return lv + rv;
         } else {
-          int leftValue = Integer.parseInt(leftFieldValue);
-          int rightValue = Integer.parseInt(rightFieldValue);
+          int lv = ((Number) leftValue).intValue();
+          double rv = ((Number) rightValue).intValue();
 
-          return String.valueOf(leftValue + rightValue);
+          return lv + rv;
         }
       case MOD:
         if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
-          double leftValue = Double.parseDouble(leftFieldValue);
-          double rightValue = Double.parseDouble(rightFieldValue);
-
-          return String.valueOf(leftValue % rightValue);
+          double lv = ((Number) leftValue).doubleValue();
+          double rv = ((Number) rightValue).doubleValue();
+          return lv % rv;
         } else {
-          int leftValue = Integer.parseInt(leftFieldValue);
-          int rightValue = Integer.parseInt(rightFieldValue);
+          int lv = ((Number) leftValue).intValue();
+          double rv = ((Number) rightValue).intValue();
 
-          return String.valueOf(leftValue % rightValue);
+          return lv % rv;
         }
       case DIVIDE:
       case DIVIDE_INTEGER:
         if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
-          double leftValue = Double.parseDouble(leftFieldValue);
-          double rightValue = Double.parseDouble(rightFieldValue);
-
-          return String.valueOf(leftValue / rightValue);
+          double lv = ((Number) leftValue).doubleValue();
+          double rv = ((Number) rightValue).doubleValue();
+          return lv / rv;
         } else {
-          int leftValue = Integer.parseInt(leftFieldValue);
-          int rightValue = Integer.parseInt(rightFieldValue);
+          int lv = ((Number) leftValue).intValue();
+          double rv = ((Number) rightValue).intValue();
 
-          return String.valueOf(leftValue / rightValue);
+          return lv / rv;
         }
       case MULTIPLY:
         if (canCastToDouble(left.getResultType()) || canCastToDouble(right.getResultType())) {
-          double leftValue = Double.parseDouble(leftFieldValue);
-          double rightValue = Double.parseDouble(rightFieldValue);
-
-          return String.valueOf(leftValue * rightValue);
+          double lv = ((Number) leftValue).doubleValue();
+          double rv = ((Number) rightValue).doubleValue();
+          return lv * rv;
         } else {
-          int leftValue = Integer.parseInt(leftFieldValue);
-          int rightValue = Integer.parseInt(rightFieldValue);
+          int lv = ((Number) leftValue).intValue();
+          double rv = ((Number) rightValue).intValue();
 
-          return String.valueOf(leftValue * rightValue);
+          return lv * rv;
         }
       default:
         throw new DRexInvokeException("Unsupported arithmetic type: " + arithmeticType);

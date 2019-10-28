@@ -46,7 +46,7 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
 
     // projection
     final DRexInvokerVisitor visitor = new DRexInvokerVisitor(deriveRowType());
-    final Map<String, DRexInvoker<?>> projectFields = new HashMap<>();
+    final Map<String, DRexInvoker> projectFields = new HashMap<>();
     for (int i = 0; i < program.getNamedProjects().size(); ++i) {
       Pair<RexLocalRef, String> rexLocalRefAndName = program.getNamedProjects().get(i);
       RexNode rexNode = program.expandLocalRef(rexLocalRefAndName.left);
@@ -54,10 +54,10 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
     }
 
     // condition
-    DRexInvoker<Boolean> conditionInvoker = null;
+    DRexInvoker conditionInvoker = null;
     if (program.getCondition() != null) {
       RexNode rexNode = program.expandLocalRef(program.getCondition());
-      conditionInvoker = (DRexInvoker<Boolean>) rexNode.accept(visitor);
+      conditionInvoker = rexNode.accept(visitor);
     }
 
     return inputDataStream.process(new DStreamCalcProcessFunction(projectFields, conditionInvoker))
