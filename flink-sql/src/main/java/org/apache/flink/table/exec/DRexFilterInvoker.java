@@ -1,4 +1,4 @@
-package org.apache.flink.table.codegen;
+package org.apache.flink.table.exec;
 
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.annotation.Internal;

@@ -1,6 +1,16 @@
 package org.apache.flink.types;
 
 
+import static org.apache.calcite.sql.type.SqlTypeName.BIGINT;
+import static org.apache.calcite.sql.type.SqlTypeName.BOOLEAN;
+import static org.apache.calcite.sql.type.SqlTypeName.CHAR;
+import static org.apache.calcite.sql.type.SqlTypeName.DOUBLE;
+import static org.apache.calcite.sql.type.SqlTypeName.FLOAT;
+import static org.apache.calcite.sql.type.SqlTypeName.INTEGER;
+import static org.apache.calcite.sql.type.SqlTypeName.SMALLINT;
+import static org.apache.calcite.sql.type.SqlTypeName.TINYINT;
+import static org.apache.calcite.sql.type.SqlTypeName.VARCHAR;
+
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
@@ -10,7 +20,7 @@ import java.util.Map;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.calcite.shaded.com.google.common.collect.ImmutableMap;
 
-public class DTypeConverts {
+public class DTypeUtils {
 
   private static Map<SqlTypeName, Class<?>> SqlTypeToJavaTypes = ImmutableMap.<SqlTypeName, Class<?>>builder()
       .put(SqlTypeName.BOOLEAN, Boolean.class)
@@ -43,7 +53,7 @@ public class DTypeConverts {
 
       // String
       .put(Character.class.getSimpleName(), SqlTypeName.CHAR)
-      .put(String.class.getSimpleName(), SqlTypeName.VARBINARY)
+      .put(String.class.getSimpleName(), SqlTypeName.VARCHAR)
 
       // Number
       .put(Byte.class.getSimpleName(), SqlTypeName.SMALLINT)
@@ -65,7 +75,7 @@ public class DTypeConverts {
 
       .build();
 
-  private DTypeConverts() {
+  private DTypeUtils() {
   }
 
   public static Class<?> sqlTypeToJavaType(SqlTypeName sqlTypeName) {
@@ -86,6 +96,24 @@ public class DTypeConverts {
       throw new UnsupportedSqlJavaTypeException(sqlTypeName);
     }
     return sqlTypeName;
+  }
+
+  public static boolean isNumeric(SqlTypeName sqlTypeName) {
+    return sqlTypeName == INTEGER || sqlTypeName == TINYINT || sqlTypeName == SMALLINT || sqlTypeName == BIGINT
+        || sqlTypeName == FLOAT || sqlTypeName == DOUBLE;
+
+  }
+
+  public static boolean isString(SqlTypeName sqlTypeName) {
+    return sqlTypeName == VARCHAR || sqlTypeName == CHAR;
+  }
+
+  public static boolean isBoolean(SqlTypeName sqlTypeName) {
+    return sqlTypeName == BOOLEAN;
+  }
+
+  public static boolean canCastToDouble(SqlTypeName sqlTypeName) {
+    return sqlTypeName == FLOAT || sqlTypeName == DOUBLE;
   }
 
 }

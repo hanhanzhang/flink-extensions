@@ -5,7 +5,16 @@ import org.apache.flink.annotation.Internal;
 @Internal
 public enum DSchemaType {
 
-  PROJECT, CONDITION
+  PROJECT("project"), CONDITION("filter");
 
+  private final String schemaTypeName;
+
+  DSchemaType(String schemaType) {
+    this.schemaTypeName = schemaType;
+  }
+
+  public String getSchemaTypeName() {
+    return schemaTypeName;
+  }
 
 }

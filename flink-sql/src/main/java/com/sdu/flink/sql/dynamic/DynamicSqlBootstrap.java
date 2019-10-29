@@ -6,14 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.table.api.DStreamTableSourceImpl;
 import org.apache.flink.table.api.DTableEnvironmentUtils;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.DRecordTuple;
-import org.apache.flink.types.DSchemaTuple;
 
 /**
  * @author hanhan.zhang
@@ -59,11 +57,8 @@ public class DynamicSqlBootstrap {
       return new DRecordTuple(recordTypes, elements);
     };
 
-    // Schema
-    SourceFunction<DSchemaTuple> schemaCheckSourceFunction = new SchemaSourceFunction(2000);
-
     DStreamTableSourceImpl<UserActionEntry> tableSource = new DStreamTableSourceImpl<>(
-        new UserActionSourceFunction(actions), mapFunction, tableSchema, schemaCheckSourceFunction, "", 2000);
+        new UserActionSourceFunction(actions), mapFunction, tableSchema, "", 2000);
     tableEnv.registerTableSource("user_action", tableSource);
 
     // 注册UDF
@@ -73,7 +68,7 @@ public class DynamicSqlBootstrap {
     tableEnv.registerTableSink("user_behavior", new SimplePrintDTableSink(tableSchema));
 
 
-    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as userId, age + 1 as age, isForeigners, action FROM user_action where action <> 'Login' and uid <> '1'";
+    String sqlText = "INSERT INTO user_behavior SELECT ADD_PREFIX(uid) as userId, age + 1 as age, isForeigners, action FROM user_action where action <> 'Login'";
 
     tableEnv.sqlUpdate(sqlText);
 

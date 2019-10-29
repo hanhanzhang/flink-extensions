@@ -1,4 +1,4 @@
-package org.apache.flink.table.codegen;
+package org.apache.flink.table.exec;
 
 import java.io.Serializable;
 import org.apache.calcite.sql.type.SqlTypeName;
@@ -10,7 +10,7 @@ public interface DRexInvoker extends Serializable {
 
   SqlTypeName getResultType();
 
-  // TODO: 2019-10-28 DTypeConverts 类型对齐
+  // TODO: 2019-10-28 DTypeUtils 类型对齐
   default Object getRecordValue(String recordValue) {
     if (recordValue == null) {
       return null;

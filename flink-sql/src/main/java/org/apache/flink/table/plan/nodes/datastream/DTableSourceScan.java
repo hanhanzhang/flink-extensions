@@ -1,5 +1,8 @@
 package org.apache.flink.table.plan.nodes.datastream;
 
+import static com.sdu.flink.utils.JsonUtils.toJson;
+import static org.apache.flink.types.DSchemaType.PROJECT;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,7 @@ import org.apache.flink.table.sources.DStreamTableSource;
 import org.apache.flink.table.sources.TableSource;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
+import org.apache.flink.types.DSchemaTupleUtils;
 import org.apache.flink.types.DStreamRecord;
 import scala.Option;
 import scala.collection.Seq;
@@ -82,9 +86,26 @@ public class DTableSourceScan extends PhysicalTableSourceScan implements DDataSt
       projectNameToTypes.put(field.getName(), field.getValue().getSqlTypeName().getName());
     }
 
+    String streamNodePath = DSchemaTupleUtils.getStreamNodePath(this);
+
     return sourceStream.connect(broadcastStream)
-        .process(new DProjectFieldsSelectProcessFunction(projectNameToTypes))
+        .process(new DProjectFieldsSelectProcessFunction(streamNodePath, projectNameToTypes))
         .returns(TypeInformation.of(DStreamRecord.class));
 
+  }
+
+  @Override
+  public Map<String, String> getStreamNodeSchema() {
+    RelDataType dataType = this.deriveRowType();
+    List<RelDataTypeField> fieldDataTypes =  dataType.getFieldList();
+    Map<String, String> projectNameToTypes = new HashMap<>();
+    for (RelDataTypeField field : fieldDataTypes) {
+      projectNameToTypes.put(field.getName(), field.getValue().getSqlTypeName().getName());
+    }
+
+    Map<String, String> streamNodeSchema = new HashMap<>(2);
+    streamNodeSchema.put(PROJECT.getSchemaTypeName(), toJson(projectNameToTypes));
+
+    return streamNodeSchema;
   }
 }

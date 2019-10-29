@@ -1,25 +1,16 @@
 package org.apache.flink.table.runtime;
 
-import static org.apache.flink.types.DTypeConverts.javaTypeToSqlType;
-import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaTypeAsString;
+import static org.apache.flink.types.DSchemaType.CONDITION;
+import static org.apache.flink.types.DSchemaType.PROJECT;
+import static org.apache.flink.types.DTypeUtils.sqlTypeToJavaTypeAsString;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.table.codegen.DRexInputRefInvoker;
-import org.apache.flink.table.codegen.DRexInvoker;
-import org.apache.flink.table.codegen.DSqlFunctionInvoker;
-import org.apache.flink.types.DConditionSchema;
-import org.apache.flink.types.DFuncProjectFieldInfo;
-import org.apache.flink.types.DProjectFieldInfo;
-import org.apache.flink.types.DProjectSchema;
+import org.apache.flink.table.exec.DRexInvoker;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
@@ -28,13 +19,17 @@ import org.apache.flink.util.Preconditions;
 
 public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, DStreamRecord> {
 
+  private final String streamNodePath;
   private Map<String, DRexInvoker> projectFieldInvokers;
 
   private DRexInvoker conditionInvoker;
 
-  public DStreamCalcProcessFunction(Map<String, DRexInvoker> projectFieldInvokers, DRexInvoker conditionInvoker) {
+  public DStreamCalcProcessFunction(String streamNodePath, Map<String, DRexInvoker> projectFieldInvokers, DRexInvoker conditionInvoker) {
+    Preconditions.checkNotNull(streamNodePath);
     Preconditions.checkNotNull(projectFieldInvokers);
 
+
+    this.streamNodePath = streamNodePath;
     this.projectFieldInvokers = projectFieldInvokers;
     this.conditionInvoker = conditionInvoker;
   }
@@ -85,73 +80,23 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
   }
 
   private void updateSchema(DStreamRecord streamRecord, Collector<DStreamRecord> out) {
-    /*
-     * StreamCalc节点, 更新的Schema信息有两种:
-     *
-     * 1: 映射字段
-     *
-     * 2: 过滤条件
-     * **/
     DSchemaTuple schemaTuple = streamRecord.schemaTuple();
-
-    DProjectSchema projectSchema = schemaTuple.getProjectSchema();
-    if (projectSchema != null) {
-      Map<String, DProjectFieldInfo> inputProjectFields = projectSchema.getInputProjectFields();
-      if (MapUtils.isNotEmpty(inputProjectFields)) {
-        Map<String, DRexInvoker> projectFieldInvokers = new HashMap<>();
-
-        for (Entry<String, DProjectFieldInfo> entry : inputProjectFields.entrySet()) {
-          // outputFieldName 可能是别名, 如 udf(field_name) as new_name
-          String outputFieldName = entry.getKey();
-          DProjectFieldInfo projectFieldInfo = entry.getValue();
-
-          //
-          if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
-            DFuncProjectFieldInfo funcProjectFieldInfo = (DFuncProjectFieldInfo) projectFieldInfo;
-            List<DRexInvoker> parameterRexInvokes = fromFuncProjectFieldInfo(funcProjectFieldInfo);
-            DSqlFunctionInvoker sqlFunctionInvoker = new DSqlFunctionInvoker(funcProjectFieldInfo.getClassName(),
-                parameterRexInvokes, javaTypeToSqlType(funcProjectFieldInfo.getFieldType()));
-            projectFieldInvokers.put(outputFieldName, sqlFunctionInvoker);
-
-          } else {
-            DRexInputRefInvoker inputRefInvoker = new DRexInputRefInvoker(projectFieldInfo.getFieldName(),
-                javaTypeToSqlType(projectFieldInfo.getFieldType()));
-            projectFieldInvokers.put(outputFieldName, inputRefInvoker);
-          }
-        }
-
-        this.projectFieldInvokers = projectFieldInvokers;
-      }
+    if (schemaTuple == null) {
+      return;
     }
 
-    // 更新过滤条件
-    DConditionSchema conditionSchema = schemaTuple.getConditionSchema();
-    if (conditionSchema != null) {
-      // TODO: 2019-10-25
-    }
+    // 映射字段
+    Map<String, DRexInvoker> fieldInvokers = schemaTuple.getStreamNodeSchema(streamNodePath, PROJECT,
+        new TypeToken<Map<String, DRexInvoker>>(){}.getType());
 
-    // 向下游发送变更Schema
+    // 过滤条件
+    DRexInvoker condition = schemaTuple.getStreamNodeSchema(streamNodePath, CONDITION, DRexInvoker.class);
+
+    this.projectFieldInvokers = fieldInvokers;
+    this.conditionInvoker = condition;
+
+    // 向下游发送
     out.collect(streamRecord);
-  }
-
-  private static List<DRexInvoker> fromFuncProjectFieldInfo(DFuncProjectFieldInfo funcProjectFieldInfo) {
-    List<DProjectFieldInfo> projectFieldInfos = funcProjectFieldInfo.getParameterProjectFields();
-    if (CollectionUtils.isEmpty(projectFieldInfos)) {
-      return Collections.emptyList();
-    }
-
-    List<DRexInvoker> rexInvokers = new ArrayList<>();
-    for (DProjectFieldInfo projectFieldInfo : projectFieldInfos) {
-      if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
-        rexInvokers.addAll(fromFuncProjectFieldInfo((DFuncProjectFieldInfo) projectFieldInfo));
-        continue;
-      }
-
-      rexInvokers.add(new DRexInputRefInvoker(projectFieldInfo.getFieldName(),
-          javaTypeToSqlType(projectFieldInfo.getFieldType())));
-    }
-
-    return rexInvokers;
   }
 
 }

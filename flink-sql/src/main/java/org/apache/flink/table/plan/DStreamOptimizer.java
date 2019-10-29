@@ -16,20 +16,12 @@ import scala.Function0;
 
 public class DStreamOptimizer extends StreamOptimizer {
 
-  public DStreamOptimizer(Function0<CalciteConfig> calciteConfig,
-      PlanningConfigurationBuilder planningConfigurationBuilder) {
-    super(calciteConfig, planningConfigurationBuilder);
-  }
-
-  @Override
-  public RuleSet getBuiltInPhysicalOptRuleSet() {
-    // FlinkRuleSets.DATASTREAM_OPT_RULES
-    return RuleSets.ofList(
+  public static RuleSet DATA_STREAM_RULES = RuleSets.ofList(
 //        DataStreamSortRule.INSTANCE(),
 //        DataStreamGroupAggregateRule.INSTANCE(),
 //        DataStreamOverAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowAggregateRule.INSTANCE(),
-        DDataStreamCalcRule.INSTANCE,
+      DDataStreamCalcRule.INSTANCE,
 //        DataStreamScanRule.INSTANCE(),
 //        DataStreamUnionRule.INSTANCE(),
 //        DataStreamValuesRule.INSTANCE(),
@@ -37,11 +29,20 @@ public class DStreamOptimizer extends StreamOptimizer {
 //        DataStreamWindowJoinRule.INSTANCE(),
 //        DataStreamJoinRule.INSTANCE(),
 //        DataStreamTemporalTableJoinRule.INSTANCE(),
-        DStreamTableSourceScanRule.INSTANCE
+      DStreamTableSourceScanRule.INSTANCE
 //        DataStreamMatchRule.INSTANCE(),
 //        DataStreamTableAggregateRule.INSTANCE(),
 //        DataStreamGroupWindowTableAggregateRule.INSTANCE()
-    );
+  );
+
+  public DStreamOptimizer(Function0<CalciteConfig> calciteConfig,
+      PlanningConfigurationBuilder planningConfigurationBuilder) {
+    super(calciteConfig, planningConfigurationBuilder);
+  }
+
+  @Override
+  public RuleSet getBuiltInPhysicalOptRuleSet() {
+    return DATA_STREAM_RULES;
   }
 
   @Override

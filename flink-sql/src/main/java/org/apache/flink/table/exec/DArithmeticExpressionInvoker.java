@@ -1,11 +1,7 @@
-package org.apache.flink.table.codegen;
+package org.apache.flink.table.exec;
 
-import static org.apache.calcite.sql.type.SqlTypeName.BIGINT;
-import static org.apache.calcite.sql.type.SqlTypeName.DOUBLE;
-import static org.apache.calcite.sql.type.SqlTypeName.FLOAT;
-import static org.apache.calcite.sql.type.SqlTypeName.INTEGER;
-import static org.apache.calcite.sql.type.SqlTypeName.SMALLINT;
-import static org.apache.calcite.sql.type.SqlTypeName.TINYINT;
+import static org.apache.flink.types.DTypeUtils.canCastToDouble;
+import static org.apache.flink.types.DTypeUtils.isNumeric;
 
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
@@ -105,19 +101,6 @@ public class DArithmeticExpressionInvoker implements DRexInvoker {
     return resultType;
   }
 
-  private static boolean isNumeric(SqlTypeName sqlTypeName) {
-    return sqlTypeName == INTEGER || sqlTypeName == TINYINT || sqlTypeName == SMALLINT || sqlTypeName == BIGINT
-        || sqlTypeName == FLOAT || sqlTypeName == DOUBLE;
-
-  }
-
-  private static boolean canCastToLong(SqlTypeName sqlTypeName) {
-    return sqlTypeName == INTEGER || sqlTypeName == TINYINT || sqlTypeName == SMALLINT || sqlTypeName == BIGINT;
-  }
-
-  private static boolean canCastToDouble(SqlTypeName sqlTypeName) {
-    return sqlTypeName == FLOAT || sqlTypeName == DOUBLE;
-  }
 
   public enum ArithmeticType {
     PLUS, MINUS, MULTIPLY, DIVIDE, DIVIDE_INTEGER, MOD

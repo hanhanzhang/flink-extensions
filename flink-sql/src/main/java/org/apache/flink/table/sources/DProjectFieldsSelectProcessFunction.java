@@ -1,19 +1,17 @@
 package org.apache.flink.table.sources;
 
+import static org.apache.flink.types.DSchemaType.PROJECT;
+
+import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
-import org.apache.flink.types.DFuncProjectFieldInfo;
-import org.apache.flink.types.DProjectFieldInfo;
-import org.apache.flink.types.DProjectSchema;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DStreamRecord;
@@ -26,11 +24,13 @@ import org.apache.flink.util.Preconditions;
 public class DProjectFieldsSelectProcessFunction extends
     BroadcastProcessFunction<DRecordTuple, DSchemaTuple, DStreamRecord> {
 
+  private final String streamNodePath;
   private transient MapStateDescriptor<Void, Map<String, String>> projectFieldStateDesc;
 
   private final Map<String, String> projectNameToTypes;
 
-  public DProjectFieldsSelectProcessFunction(Map<String, String> nameToTypes) {
+  public DProjectFieldsSelectProcessFunction(String streamNodePath, Map<String, String> nameToTypes) {
+    this.streamNodePath = streamNodePath;
     this.projectNameToTypes = nameToTypes;
   }
 
@@ -60,18 +60,10 @@ public class DProjectFieldsSelectProcessFunction extends
     BroadcastState<Void, Map<String, String>> broadcastState = ctx.getBroadcastState(projectFieldStateDesc);
 
     // TableScan负责更新映射字段
-    DProjectSchema projectSchema = schemaTuple.getProjectSchema();
-    Preconditions.checkNotNull(projectSchema);
-
-    Map<String, DProjectFieldInfo> inputProjectSchemas = projectSchema.getInputProjectFields();
-    Map<String, String> fieldNameToTypes = new HashMap<>();
-    for (Entry<String, DProjectFieldInfo> entry : inputProjectSchemas.entrySet()) {
-      fromProjectFieldInfo(entry.getValue(), fieldNameToTypes);
-    }
-
-    if (!fieldNameToTypes.isEmpty()) {
-      broadcastState.put(null, fieldNameToTypes);
-    }
+    Map<String, String> projectSchema = schemaTuple.getStreamNodeSchema(streamNodePath, PROJECT,
+        new TypeToken<Map<String, String>>(){}.getType());
+    Preconditions.checkState(projectSchema != null && !projectSchema.isEmpty());
+    broadcastState.put(null, projectSchema);
 
     out.collect(new DStreamRecord(schemaTuple));
   }
@@ -91,25 +83,4 @@ public class DProjectFieldsSelectProcessFunction extends
     return new DStreamRecord(new DRecordTuple(recordTypes, recordValues));
   }
 
-  private static void fromProjectFieldInfo(DProjectFieldInfo projectFieldInfo, Map<String, String> projectNameToTypes) {
-    if (projectFieldInfo instanceof DFuncProjectFieldInfo) {
-      DFuncProjectFieldInfo funcProjectFieldInfo = (DFuncProjectFieldInfo) projectFieldInfo;
-      List<DProjectFieldInfo> projectFieldInfos = funcProjectFieldInfo.getParameterProjectFields();
-      if (CollectionUtils.isEmpty(projectFieldInfos)) {
-        return;
-      }
-      for (DProjectFieldInfo fieldInfo : projectFieldInfos) {
-        if (fieldInfo instanceof DFuncProjectFieldInfo) {
-          fromProjectFieldInfo(fieldInfo, projectNameToTypes);
-          continue;
-        }
-        projectNameToTypes.put(projectFieldInfo.getFieldName(), projectFieldInfo.getFieldType());
-      }
-    }
-
-    else {
-      projectNameToTypes.put(projectFieldInfo.getFieldName(), projectFieldInfo.getFieldType());
-    }
-
-  }
 }

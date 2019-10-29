@@ -14,8 +14,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.table.plan.nodes.datastream.StreamTableSourceScan;
-import org.apache.flink.table.sources.DefinedRowtimeAttributes;
 import org.apache.flink.table.sources.DStreamTableSource;
+import org.apache.flink.table.sources.DefinedRowtimeAttributes;
 import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.tsextractors.ExistingField;
 import org.apache.flink.table.sources.wmstrategies.BoundedOutOfOrderTimestamps;
@@ -34,25 +34,22 @@ public class DStreamTableSourceImpl<T> implements DStreamTableSource, DefinedRow
 
   private final SourceFunction<T> sourceFunction;
   private final MapFunction<T, DRecordTuple> mapFunction;
-  private final SourceFunction<DSchemaTuple> schemaCheckFunction;
 
   private final String eventTimeName;
   private final long lateness;
 
   public DStreamTableSourceImpl(
-      SourceFunction<T> sourceFunction, MapFunction<T, DRecordTuple> mapFunction, TableSchema tableSchema,
-      SourceFunction<DSchemaTuple> schemaCheckFunction, String eventTimeName, long lateness) {
+      SourceFunction<T> sourceFunction, MapFunction<T, DRecordTuple> mapFunction, TableSchema tableSchema, String eventTimeName, long lateness) {
     this.sourceFunction = sourceFunction;
     this.mapFunction = mapFunction;
     this.tableSchema = tableSchema;
-    this.schemaCheckFunction = schemaCheckFunction;
     this.eventTimeName = eventTimeName;
     this.lateness = lateness;
   }
 
   @Override
   public BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv) {
-    DataStream<DSchemaTuple> schemaUpdateStream = execEnv.addSource(schemaCheckFunction);
+    DataStream<DSchemaTuple> schemaUpdateStream = execEnv.addSource(new DSchemaUpdateFunction());
     MapStateDescriptor<Void, Map<String, String>> broadcastStateDescriptor = new MapStateDescriptor<>(
         "BroadcastSqlProjectSchemaState", Types.VOID, Types.MAP(Types.STRING, Types.STRING));
     return schemaUpdateStream.broadcast(broadcastStateDescriptor);

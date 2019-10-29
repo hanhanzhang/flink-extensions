@@ -2,6 +2,7 @@ package org.apache.flink.types;
 
 import com.sdu.flink.utils.JsonUtils;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -11,33 +12,28 @@ import org.apache.flink.annotation.Internal;
 @Data
 public class DSchemaTuple implements Serializable {
 
-  private final Map<DSchemaType, String> schemaRecords;
+  private final Map<String, Map<String, String>> schemaNodeSchemas;
 
   public DSchemaTuple() {
-    schemaRecords = new HashMap<>();
+    schemaNodeSchemas = new HashMap<>();
   }
 
-  public void addProjectSchema(DProjectSchema projectSchema) {
-    schemaRecords.put(DSchemaType.PROJECT, JsonUtils.toJson(projectSchema));
-  }
-
-  public DProjectSchema getProjectSchema() {
-    String projectSchemaData = schemaRecords.get(DSchemaType.PROJECT);
-    if (projectSchemaData == null) {
+  public <T> T getStreamNodeSchema(String streamNode, DSchemaType schemaType, Type type) {
+    Map<String, String> streamNodeSchema = schemaNodeSchemas.get(streamNode);
+    if (streamNodeSchema == null) {
       return null;
     }
 
-    return JsonUtils.fromJson(projectSchemaData, DProjectSchema.class);
-  }
-
-
-  public DConditionSchema getConditionSchema() {
-    String conditionSchemaData = schemaRecords.get(DSchemaType.CONDITION);
-    if (conditionSchemaData == null) {
+    String schemaJson = streamNodeSchema.get(schemaType.getSchemaTypeName());
+    if (schemaJson == null) {
       return null;
     }
 
-    return JsonUtils.fromJson(conditionSchemaData, DConditionSchema.class);
+    return JsonUtils.fromJson(schemaJson, type);
+  }
+
+  public void addStreamNodeSchema(String streamNode, Map<String, String> streamNodeSchema) {
+    schemaNodeSchemas.put(streamNode, streamNodeSchema);
   }
 
 }

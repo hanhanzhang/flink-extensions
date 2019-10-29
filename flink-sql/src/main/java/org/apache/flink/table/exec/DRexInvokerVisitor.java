@@ -1,4 +1,4 @@
-package org.apache.flink.table.codegen;
+package org.apache.flink.table.exec;
 
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.AND;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.DIVIDE;
@@ -16,7 +16,7 @@ import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MULTIPLY;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.NOT_EQUALS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.OR;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.PLUS;
-import static org.apache.flink.types.DTypeConverts.sqlTypeToJavaType;
+import static org.apache.flink.types.DTypeUtils.sqlTypeToJavaType;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -42,9 +42,9 @@ import org.apache.calcite.rex.RexVisitor;
 import org.apache.calcite.sql.SqlFunction;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.flink.table.codegen.DArithmeticExpressionInvoker.ArithmeticType;
-import org.apache.flink.table.codegen.DRexCompareInvoker.RexCompareType;
-import org.apache.flink.table.codegen.DRexLogicalInvoker.RexLogicalType;
+import org.apache.flink.table.exec.DArithmeticExpressionInvoker.ArithmeticType;
+import org.apache.flink.table.exec.DRexCompareInvoker.RexCompareType;
+import org.apache.flink.table.exec.DRexLogicalInvoker.RexLogicalType;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.utils.ScalarSqlFunction;
 import org.apache.flink.table.functions.utils.UserDefinedFunctionUtils;
