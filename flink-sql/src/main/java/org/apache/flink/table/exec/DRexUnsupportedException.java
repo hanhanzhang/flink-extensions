@@ -1,8 +1,8 @@
 package org.apache.flink.table.exec;
 
-class DRexUnsupportedException extends RuntimeException {
+public class DRexUnsupportedException extends RuntimeException {
 
-  DRexUnsupportedException(String message) {
+  public DRexUnsupportedException(String message) {
     super(message);
   }
 

@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.table.plan.nodes.datastream.DDataStreamCalc;
-import org.apache.flink.table.updater.DSqlParer;
-import org.apache.flink.table.updater.TableStatement;
+import org.apache.flink.table.updater.DSqlUpdater;
+import org.apache.flink.table.updater.DTableStatement;
 import org.apache.flink.types.DSchemaTuple;
 import org.apache.flink.types.DSchemaTupleUtils;
 import org.slf4j.Logger;
@@ -71,20 +71,20 @@ class DSchemaUpdateFunction implements SourceFunction<DSchemaTuple>, Runnable {
       LOG.error("load config failure", e);
     }
 
-    List<TableStatement> tableStatements = JsonUtils.fromJson(props.getProperty("table"),
-        new TypeToken<List<TableStatement>>(){}.getType());
+    List<DTableStatement> tableStatements = JsonUtils.fromJson(props.getProperty("table"),
+        new TypeToken<List<DTableStatement>>(){}.getType());
 
     int i = 0;
+    int len = props.size() - 1;
 
     while (running) {
       try {
         TimeUnit.SECONDS.sleep(10);
 
         DSchemaTuple schemaTuple = new DSchemaTuple();
-        int sqlKey = ++i % 3;
+        int sqlKey = i++ % len;
         String sql = props.getProperty(String.valueOf(sqlKey));
-        DSqlParer sqlParer = new DSqlParer(tableStatements);
-        DDataStreamCalc streamRel = sqlParer.parseSql(sql);
+        DDataStreamCalc streamRel = DSqlUpdater.parseSql(tableStatements, sql);
 
         DSchemaTupleUtils.toSchemaTuple(streamRel, schemaTuple);
         synchronized (schemaQueue) {

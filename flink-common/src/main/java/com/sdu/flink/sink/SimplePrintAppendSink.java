@@ -1,6 +1,6 @@
 package com.sdu.flink.sink;
 
-import com.sdu.flink.utils.SqlUtils;
+import com.sdu.flink.utils.SqlTypeUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -28,7 +28,7 @@ public class SimplePrintAppendSink implements AppendStreamTableSink<Row> {
 
 	@Override
 	public DataType getConsumedDataType() {
-		return SqlUtils.fromTableSchema(tableSchema);
+		return SqlTypeUtils.fromTableSchema(tableSchema);
 	}
 
 	@Override

@@ -1,8 +1,8 @@
 package org.apache.flink.table.exec;
 
-import static org.apache.flink.types.DTypeUtils.isBoolean;
-import static org.apache.flink.types.DTypeUtils.isNumeric;
-import static org.apache.flink.types.DTypeUtils.isString;
+import static org.apache.flink.types.DSqlTypeUtils.isBoolean;
+import static org.apache.flink.types.DSqlTypeUtils.isNumeric;
+import static org.apache.flink.types.DSqlTypeUtils.isString;
 
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.annotation.Internal;
@@ -41,9 +41,9 @@ public class DRexCompareInvoker implements DRexFilterInvoker {
 
     switch (type) {
       case EQUALS:
-        return leftValue != null && leftValue.equals(rightValue);
+        return generateEquals(leftValue, left.getResultType(), rightValue, right.getResultType());
       case NOT_EQUALS:
-        return leftValue != null && !leftValue.equals(rightValue);
+        return generateNotEquals(leftValue, left.getResultType(), rightValue, right.getResultType());
       case GREATER_THAN:
         return generateGreaterThan(leftValue, left.getResultType(), rightValue, right.getResultType());
       case GREATER_THAN_OR_EQUAL:
@@ -62,6 +62,98 @@ public class DRexCompareInvoker implements DRexFilterInvoker {
         // TODO: 2019-10-28
         return false;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static boolean generateEquals(Object leftValue, SqlTypeName leftType, Object rightValue, SqlTypeName rightType) {
+    /*
+     * 数字类型
+     * */
+    if (isNumeric(leftType) && isNumeric(rightType)) {
+      Number lv = (Number) leftValue;
+      Number rv = (Number) rightValue;
+      return lv.doubleValue() == rv.doubleValue();
+    }
+
+    /*
+     * 字符串类型
+     * */
+    if (isString(leftType) && isString(rightType)) {
+      String lv = String.valueOf(leftValue);
+      String rv = String.valueOf(rightValue);
+      return lv.equals(rv);
+    }
+
+    /*
+     * 布尔类型
+     * */
+    if (isBoolean(leftType) && isBoolean(rightType)) {
+      Boolean lv = (Boolean) leftValue;
+      Boolean rv = (Boolean) rightValue;
+      return lv.equals(rv);
+    }
+
+    /*
+     * 实现Comparable接口
+     * */
+    if (isComparable(leftValue) && isComparable(rightValue)
+        && leftValue.getClass() == rightValue.getClass()) {
+      Comparable lv = (Comparable) leftValue;
+      Comparable rv = (Comparable) rightValue;
+      return lv.compareTo(rv) == 0;
+    }
+
+    if (leftValue.getClass() == rightValue.getClass()) {
+      return leftValue.equals(rightValue);
+    }
+
+    throw new DRexUnsupportedException("Incomparable types: " + leftType + " and " + rightType);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static boolean generateNotEquals(Object leftValue, SqlTypeName leftType, Object rightValue, SqlTypeName rightType) {
+    /*
+     * 数字类型
+     * */
+    if (isNumeric(leftType) && isNumeric(rightType)) {
+      Number lv = (Number) leftValue;
+      Number rv = (Number) rightValue;
+      return lv.doubleValue() != rv.doubleValue();
+    }
+
+    /*
+     * 字符串类型
+     * */
+    if (isString(leftType) && isString(rightType)) {
+      String lv = String.valueOf(leftValue);
+      String rv = String.valueOf(rightValue);
+      return !lv.equals(rv);
+    }
+
+    /*
+     * 布尔类型
+     * */
+    if (isBoolean(leftType) && isBoolean(rightType)) {
+      Boolean lv = (Boolean) leftValue;
+      Boolean rv = (Boolean) rightValue;
+      return !lv.equals(rv);
+    }
+
+    /*
+     * 实现Comparable接口
+     * */
+    if (isComparable(leftValue) && isComparable(rightValue)
+        && leftValue.getClass() == rightValue.getClass()) {
+      Comparable lv = (Comparable) leftValue;
+      Comparable rv = (Comparable) rightValue;
+      return lv.compareTo(rv) != 0;
+    }
+
+    if (leftValue.getClass() == rightValue.getClass()) {
+      return !leftValue.equals(rightValue);
+    }
+
+    throw new DRexUnsupportedException("Incomparable types: " + leftType + " and " + rightType);
   }
 
   @SuppressWarnings("unchecked")

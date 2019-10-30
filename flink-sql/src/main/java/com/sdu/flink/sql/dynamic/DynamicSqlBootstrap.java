@@ -1,17 +1,12 @@
 package com.sdu.flink.sql.dynamic;
 
-import com.sdu.flink.source.UserActionSourceFunction;
 import com.sdu.flink.utils.UserActionEntry;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DStreamTableSourceImpl;
 import org.apache.flink.table.api.DTableEnvironmentUtils;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
-import org.apache.flink.types.DRecordTuple;
 
 /**
  * @author hanhan.zhang
@@ -29,15 +24,6 @@ public class DynamicSqlBootstrap {
 
     StreamTableEnvironment tableEnv = DTableEnvironmentUtils.create(env);
 
-    // TODO: 类型处理
-    final Map<String, String> recordTypes = new HashMap<>();
-    recordTypes.put("uid", "String");
-    recordTypes.put("age", "Integer");
-    recordTypes.put("isForeigners", "Boolean");
-    recordTypes.put("action", "String");
-    recordTypes.put("timestamp", "Long");
-
-
     // 数据源
     TableSchema tableSchema = TableSchema.builder()
         .field("uid", DataTypes.STRING())
@@ -47,18 +33,8 @@ public class DynamicSqlBootstrap {
         .field("timestamp", DataTypes.BIGINT())
         .build();
 
-    MapFunction<UserActionEntry, DRecordTuple> mapFunction = (UserActionEntry entry) -> {
-      Map<String, String> elements = new HashMap<>();
-      elements.put("uid", entry.getUid());
-      elements.put("age", String.valueOf(entry.getAge()));
-      elements.put("isForeigners", String.valueOf(entry.isForeigners()));
-      elements.put("action", entry.getAction());
-      elements.put("timestamp", String.valueOf(entry.getTimestamp()));
-      return new DRecordTuple(recordTypes, elements);
-    };
-
     DStreamTableSourceImpl<UserActionEntry> tableSource = new DStreamTableSourceImpl<>(
-        new UserActionSourceFunction(actions), mapFunction, tableSchema, "", 2000);
+        new DUserActionSourceFunction(actions), tableSchema, "", 2000);
     tableEnv.registerTableSource("user_action", tableSource);
 
     // 注册UDF

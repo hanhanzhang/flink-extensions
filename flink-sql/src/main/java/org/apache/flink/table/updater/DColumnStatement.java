@@ -4,7 +4,7 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
-public class ColumnStatement implements Serializable {
+public class DColumnStatement implements Serializable {
 
   private String name;
 
@@ -12,7 +12,7 @@ public class ColumnStatement implements Serializable {
 
   private String comment;
 
-  public ColumnStatement(String name, String type) {
+  public DColumnStatement(String name, String type) {
     this.name = name;
     this.type = type;
   }

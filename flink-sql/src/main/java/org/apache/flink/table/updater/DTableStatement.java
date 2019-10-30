@@ -5,10 +5,10 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class TableStatement implements Serializable {
+public class DTableStatement implements Serializable {
 
   private String tableName;
-  private List<ColumnStatement> columns;
+  private List<DColumnStatement> columns;
 
 
 }

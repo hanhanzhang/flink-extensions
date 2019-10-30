@@ -1,13 +1,18 @@
 package org.apache.flink.table.exec;
 
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.AND;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.CAST;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.DIVIDE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.EQUALS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.GREATER_THAN;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.GREATER_THAN_OR_EQUAL;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_FALSE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_DISTINCT_FROM;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_FALSE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_NULL;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_TRUE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NULL;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_TRUE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.LESS_THAN;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.LESS_THAN_OR_EQUAL;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MINUS;
@@ -16,7 +21,8 @@ import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MULTIPLY;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.NOT_EQUALS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.OR;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.PLUS;
-import static org.apache.flink.types.DTypeUtils.sqlTypeToJavaType;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.REINTERPRET;
+import static org.apache.flink.types.DSqlTypeUtils.sqlTypeToJavaType;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -192,24 +198,28 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
 //    else if (operator == CASE) {
 //
 //    }
-//    else if (operator == IS_TRUE) {
-//
-//    }
-//    else if (operator == IS_NOT_TRUE) {
-//
-//    }
-//    else if (operator == IS_FALSE) {
-//
-//    }
-//    else if (operator == IS_NOT_FALSE) {
-//
-//    }
+    else if (operator == IS_TRUE) {
+      return generateRexBoolean(rexCall.getOperands(), resultType, true, this);
+    }
+    else if (operator == IS_NOT_TRUE) {
+      return generateRexBoolean(rexCall.getOperands(), resultType, false, this);
+    }
+    else if (operator == IS_FALSE) {
+      return generateRexBoolean(rexCall.getOperands(), resultType, false, this);
+    }
+    else if (operator == IS_NOT_FALSE) {
+      return generateRexBoolean(rexCall.getOperands(), resultType, true, this);
+    }
 //    else if (operator == IN) {
 //
 //    }
 //    else if (operator == NOT_IN) {
 //
 //    }
+
+    else if (operator == CAST || operator == REINTERPRET) {
+      return generateCast(rexCall.getOperands(), resultType, this);
+    }
 
     else {
       // 自定义函数
@@ -299,18 +309,21 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
     throw new DRexUnsupportedException("Pattern field references are not supported yet.");
   }
 
-  private static DRexInvoker generateArithmeticOperator(SqlTypeName resultType, ArithmeticType type,
-      List<RexNode> operands, RexVisitor<DRexInvoker> visitor) {
-    assert operands.size() == 2;
-    DRexInvoker left = operands.get(0).accept(visitor);
-    DRexInvoker right = operands.get(1).accept(visitor);
+  private static DRexInvoker generateArithmeticOperator(SqlTypeName resultType, ArithmeticType type, List<RexNode> operands, RexVisitor<DRexInvoker> visitor) {
+    List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
+    assert operandInvokers.size() == 2;
+
+    DRexInvoker left = operandInvokers.get(0);
+    DRexInvoker right = operandInvokers.get(1);
     return new DArithmeticExpressionInvoker(resultType, type, left, right);
   }
 
   private static DRexInvoker generateCompareExpression(List<RexNode> operands, RexCompareType type, RexVisitor<DRexInvoker> visitor) {
-    assert operands.size() == 2;
-    DRexInvoker left = operands.get(0).accept(visitor);
-    DRexInvoker right = operands.get(1).accept(visitor);
+    List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
+    assert operandInvokers.size() == 2;
+
+    DRexInvoker left = operandInvokers.get(0);
+    DRexInvoker right = operandInvokers.get(1);
     return new DRexCompareInvoker(left, type, right);
   }
 
@@ -321,12 +334,30 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
 
   private static DRexInvoker generateLogicalExpression(List<RexNode> operands, RexLogicalType type, RexVisitor<DRexInvoker> visitor) {
     assert operands.size() == 2;
-
-    List<DRexInvoker> filterInvokers = new ArrayList<>();
-    for (RexNode operand : operands) {
-      filterInvokers.add(operand.accept(visitor));
-    }
+    List<DRexInvoker> filterInvokers = rexNodeToRexInvoker(operands, visitor);
     return new DRexLogicalInvoker(type, filterInvokers);
   }
 
+  private static DRexInvoker generateCast(List<RexNode> operands, SqlTypeName resultType, RexVisitor<DRexInvoker> visitor) {
+    List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
+
+    assert operandInvokers.size() == 1;
+
+    DRexInvoker rexInvoker = operandInvokers.get(0);
+
+    return new DRexCastInvoker(resultType, rexInvoker);
+  }
+
+  private static DRexInvoker generateRexBoolean(List<RexNode> operands, SqlTypeName resultType, boolean resultValue, RexVisitor<DRexInvoker> visitor) {
+    List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
+
+    assert operandInvokers.size() == 1;
+    assert resultType == SqlTypeName.BOOLEAN;
+
+    return new DRexBooleanInvoker(resultValue, operandInvokers.get(0));
+  }
+
+  private static List<DRexInvoker> rexNodeToRexInvoker(List<RexNode> operands, RexVisitor<DRexInvoker> visitor) {
+    return operands.stream().map(rexNode -> rexNode.accept(visitor)).collect(Collectors.toList());
+  }
 }

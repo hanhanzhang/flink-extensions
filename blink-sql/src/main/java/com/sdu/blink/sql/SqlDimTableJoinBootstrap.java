@@ -1,7 +1,12 @@
 package com.sdu.blink.sql;
 
 import com.sdu.flink.sink.SimplePrintAppendSink;
-import com.sdu.flink.utils.SqlUtils;
+import com.sdu.flink.utils.SqlTypeUtils;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DataTypes;
@@ -15,12 +20,6 @@ import org.apache.flink.table.functions.TableFunction;
 import org.apache.flink.table.sources.LookupableTableSource;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 流表关联
@@ -149,7 +148,7 @@ public class SqlDimTableJoinBootstrap {
 
 		@Override
 		public DataType getProducedDataType() {
-			return SqlUtils.fromTableSchema(tableSchema);
+			return SqlTypeUtils.fromTableSchema(tableSchema);
 		}
 	}
 

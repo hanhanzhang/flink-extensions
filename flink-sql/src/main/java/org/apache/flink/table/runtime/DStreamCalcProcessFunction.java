@@ -2,7 +2,7 @@ package org.apache.flink.table.runtime;
 
 import static org.apache.flink.types.DSchemaType.CONDITION;
 import static org.apache.flink.types.DSchemaType.PROJECT;
-import static org.apache.flink.types.DTypeUtils.sqlTypeToJavaTypeAsString;
+import static org.apache.flink.types.DSqlTypeUtils.sqlTypeToJavaTypeAsString;
 
 import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;

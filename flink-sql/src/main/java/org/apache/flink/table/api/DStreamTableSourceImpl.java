@@ -1,18 +1,15 @@
 package org.apache.flink.table.api;
 
 
-import com.sdu.flink.utils.SqlUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.table.plan.nodes.datastream.StreamTableSourceScan;
 import org.apache.flink.table.sources.DStreamTableSource;
 import org.apache.flink.table.sources.DefinedRowtimeAttributes;
@@ -22,6 +19,7 @@ import org.apache.flink.table.sources.wmstrategies.BoundedOutOfOrderTimestamps;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
+import org.apache.flink.types.DSqlTypeUtils;
 
 /**
  * {@link StreamTableSourceScan}
@@ -32,16 +30,13 @@ public class DStreamTableSourceImpl<T> implements DStreamTableSource, DefinedRow
 
   private final TableSchema tableSchema;
 
-  private final SourceFunction<T> sourceFunction;
-  private final MapFunction<T, DRecordTuple> mapFunction;
+  private final DStreamSourceFunction<T> sourceFunction;
 
   private final String eventTimeName;
   private final long lateness;
 
-  public DStreamTableSourceImpl(
-      SourceFunction<T> sourceFunction, MapFunction<T, DRecordTuple> mapFunction, TableSchema tableSchema, String eventTimeName, long lateness) {
+  public DStreamTableSourceImpl(DStreamSourceFunction<T> sourceFunction, TableSchema tableSchema, String eventTimeName, long lateness) {
     this.sourceFunction = sourceFunction;
-    this.mapFunction = mapFunction;
     this.tableSchema = tableSchema;
     this.eventTimeName = eventTimeName;
     this.lateness = lateness;
@@ -57,11 +52,13 @@ public class DStreamTableSourceImpl<T> implements DStreamTableSource, DefinedRow
 
   @Override
   public DataStream<DRecordTuple> getDataStream(StreamExecutionEnvironment execEnv) {
-    // TODO: 并发度
+    final DRecordTupleFactory<T> factory = sourceFunction.getRecordTupleFactory();
+    int parallelism = sourceFunction.getStreamParallelism();
+
     return execEnv.addSource(sourceFunction)
-        .map(mapFunction)
+        .map(factory::buildRecordTuple)
         .returns(TypeInformation.of(DRecordTuple.class))
-        .setParallelism(8);
+        .setParallelism(parallelism);
   }
 
   @Override
@@ -86,6 +83,6 @@ public class DStreamTableSourceImpl<T> implements DStreamTableSource, DefinedRow
 
   @Override
   public DataType getProducedDataType() {
-    return SqlUtils.fromTableSchema(tableSchema);
+    return DSqlTypeUtils.fromTableSchema(tableSchema);
   }
 }

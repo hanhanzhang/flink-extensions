@@ -1,7 +1,7 @@
 package org.apache.flink.table.exec;
 
 
-import static org.apache.flink.types.DTypeUtils.sqlTypeToJavaType;
+import static org.apache.flink.types.DSqlTypeUtils.sqlTypeToJavaType;
 
 import java.lang.reflect.Method;
 import java.util.List;
