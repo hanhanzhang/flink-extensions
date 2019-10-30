@@ -198,6 +198,7 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
 //    else if (operator == CASE) {
 //
 //    }
+    // TODO: 尚未校验
     else if (operator == IS_TRUE) {
       return generateRexBoolean(rexCall.getOperands(), resultType, true, this);
     }
