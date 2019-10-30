@@ -1,8 +1,12 @@
 package org.apache.flink.table.updater;
 
-import java.util.ArrayList;
+import static org.apache.flink.types.DTypeUtils.javaTypeToDataType;
+
+import com.sdu.flink.utils.SqlUtils;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -13,18 +17,19 @@ import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptSchema;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
-import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParser;
-import org.apache.calcite.sql.type.SqlTypeUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
+import org.apache.flink.streaming.api.datastream.BroadcastStream;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableConfig;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.calcite.CalciteConfig;
 import org.apache.flink.table.calcite.FlinkPlannerImpl;
 import org.apache.flink.table.calcite.FlinkRelBuilder;
@@ -37,8 +42,13 @@ import org.apache.flink.table.expressions.PlannerExpression;
 import org.apache.flink.table.expressions.PlannerExpressionConverter;
 import org.apache.flink.table.plan.DStreamOptimizer;
 import org.apache.flink.table.plan.nodes.datastream.DDataStreamCalc;
+import org.apache.flink.table.plan.schema.TableSourceTable;
+import org.apache.flink.table.plan.stats.FlinkStatistic;
 import org.apache.flink.table.planner.PlanningConfigurationBuilder;
-import org.apache.flink.types.DTypeUtils;
+import org.apache.flink.table.sources.DStreamTableSource;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.types.DSchemaTuple;
 
 public class DSqlParer {
 
@@ -52,22 +62,13 @@ public class DSqlParer {
 
     SchemaPlus schemaPlus = CalciteSchema.createRootSchema(true).plus();
     for (final TableStatement tableStatement : tableStatements) {
-      schemaPlus.add(tableStatement.getTableName(), new AbstractTable() {
-
-        private RelDataType rowDataType;
-
-        @Override
-        public RelDataType getRowType(RelDataTypeFactory relDataTypeFactory) {
-          if (rowDataType == null) {
-            rowDataType = deriveRowType(relDataTypeFactory, tableStatement.getColumns());
-          }
-          return rowDataType;
-        }
-      });
+      TableSourceTable<DRecordTuple> table = new TableSourceTable<>(
+          new EmptyDStreamTableSource(tableStatement.getColumns()), true, FlinkStatistic.UNKNOWN());
+      schemaPlus.add(tableStatement.getTableName(), table);
     }
     CalciteSchema rootSchema = CalciteSchema.from(schemaPlus);
 
-
+    // TODO: UDF
     ExpressionBridge<PlannerExpression> expressionBridge = new ExpressionBridge<>(null,
         PlannerExpressionConverter.INSTANCE());
 
@@ -99,20 +100,6 @@ public class DSqlParer {
     }
 
     throw new UnsupportedOperationException("Unsupported sql: " + sql);
-  }
-
-  private static RelDataType deriveRowType(RelDataTypeFactory typeFactory, List<ColumnStatement> columnStatements) {
-
-    List<RelDataType> relDataTypeList = new ArrayList<>();
-    List<String> columnNameList = new ArrayList<>();
-
-    for (ColumnStatement columnStatement : columnStatements) {
-      RelDataType sqlType = typeFactory.createSqlType(DTypeUtils.javaTypeToSqlType(columnStatement.getType()));
-      sqlType = SqlTypeUtil.addCharsetAndCollation(sqlType, typeFactory);
-      relDataTypeList.add(sqlType);
-      columnNameList.add(columnStatement.getName());
-    }
-    return typeFactory.createStructType(relDataTypeList, columnNameList);
   }
 
   private static FlinkRelBuilder createRelBuilder(CalciteSchema rootSchema, RelOptPlanner planner,
@@ -167,6 +154,43 @@ public class DSqlParer {
         .withInSubQueryThreshold(Integer.MAX_VALUE)
         .withRelBuilderFactory(new FlinkRelBuilderFactory(null))
         .build();
+  }
+
+  public static class EmptyDStreamTableSource implements DStreamTableSource {
+
+    private TableSchema tableSchema;
+    private Map<String, DataType> fieldDataTypes;
+
+    EmptyDStreamTableSource(List<ColumnStatement> columnStatements) {
+      fieldDataTypes = new HashMap<>();
+      TableSchema.Builder builder = TableSchema.builder();
+      for (ColumnStatement columnStatement : columnStatements) {
+        DataType dataType = javaTypeToDataType(columnStatement.getType());
+        builder.field(columnStatement.getName(), dataType);
+        fieldDataTypes.put(columnStatement.getName(), dataType);
+      }
+      tableSchema = builder.build();
+    }
+
+    @Override
+    public BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv) {
+      return null;
+    }
+
+    @Override
+    public DataStream<DRecordTuple> getDataStream(StreamExecutionEnvironment execEnv) {
+      return null;
+    }
+
+    @Override
+    public TableSchema getTableSchema() {
+      return tableSchema;
+    }
+
+    @Override
+    public DataType getProducedDataType() {
+      return SqlUtils.fromTableSchema(tableSchema);
+    }
   }
 
 }

@@ -51,7 +51,6 @@ class DSchemaUpdateFunction implements SourceFunction<DSchemaTuple>, Runnable {
         if (schemaTuple != null) {
           ctx.collect(schemaTuple);
         }
-        schemaQueue.notify();
       }
     }
   }
@@ -79,7 +78,7 @@ class DSchemaUpdateFunction implements SourceFunction<DSchemaTuple>, Runnable {
 
     while (running) {
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.SECONDS.sleep(10);
 
         DSchemaTuple schemaTuple = new DSchemaTuple();
         int sqlKey = ++i % 3;
@@ -90,6 +89,7 @@ class DSchemaUpdateFunction implements SourceFunction<DSchemaTuple>, Runnable {
         DSchemaTupleUtils.toSchemaTuple(streamRel, schemaTuple);
         synchronized (schemaQueue) {
           schemaQueue.offer(schemaTuple);
+          schemaQueue.notify();
         }
       } catch (Exception e) {
         LOG.error("parse sql failure", e);

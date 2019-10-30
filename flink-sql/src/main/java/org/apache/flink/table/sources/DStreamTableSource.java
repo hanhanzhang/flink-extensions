@@ -6,17 +6,16 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
-import org.apache.flink.types.DStreamRecord;
 
-public interface DStreamTableSource extends TableSource<DStreamRecord> {
+public interface DStreamTableSource extends TableSource<DRecordTuple> {
 
   BroadcastStream<DSchemaTuple> getBroadcastStream(StreamExecutionEnvironment execEnv);
 
   DataStream<DRecordTuple> getDataStream(StreamExecutionEnvironment execEnv);
 
   @Override
-  default TypeInformation<DStreamRecord> getReturnType() {
-    return TypeInformation.of(DStreamRecord.class);
+  default TypeInformation<DRecordTuple> getReturnType() {
+    return TypeInformation.of(DRecordTuple.class);
   }
 
 }

@@ -4,6 +4,7 @@ import static com.sdu.flink.utils.JsonUtils.toJson;
 import static org.apache.flink.types.DSchemaType.CONDITION;
 import static org.apache.flink.types.DSchemaType.PROJECT;
 
+import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.calcite.plan.RelOptCluster;
@@ -84,14 +85,15 @@ public class DDataStreamCalc extends Calc implements DDataStreamRel {
       RexNode rexNode = program.expandLocalRef(rexLocalRefAndName.left);
       projectFields.put(rexLocalRefAndName.right, rexNode.accept(visitor));
     }
-    rexInvokers.put(PROJECT.getSchemaTypeName(), toJson(projectFields));
+    rexInvokers.put(PROJECT.getSchemaTypeName(),
+        toJson(projectFields, new TypeToken<Map<String, DRexInvoker>>(){}.getType()));
 
 
     DRexInvoker conditionInvoker;
     if (program.getCondition() != null) {
       RexNode rexNode = program.expandLocalRef(program.getCondition());
       conditionInvoker = rexNode.accept(visitor);
-      rexInvokers.put(CONDITION.getSchemaTypeName(), toJson(conditionInvoker));
+      rexInvokers.put(CONDITION.getSchemaTypeName(), toJson(conditionInvoker, DRexInvoker.class));
     }
 
     return rexInvokers;

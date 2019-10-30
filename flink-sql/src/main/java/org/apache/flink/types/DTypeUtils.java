@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.calcite.shaded.com.google.common.collect.ImmutableMap;
+import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.types.DataType;
 
 public class DTypeUtils {
 
@@ -81,7 +83,7 @@ public class DTypeUtils {
   public static Class<?> sqlTypeToJavaType(SqlTypeName sqlTypeName) {
     Class<?> javaType = SqlTypeToJavaTypes.get(sqlTypeName);
     if (javaType == null) {
-      throw new UnsupportedSqlJavaTypeException(sqlTypeName);
+      throw new UnsupportedTypeException(sqlTypeName.getName());
     }
     return javaType;
   }
@@ -90,12 +92,23 @@ public class DTypeUtils {
     return sqlTypeToJavaType(sqlTypeName).getSimpleName();
   }
 
-  public static SqlTypeName javaTypeToSqlType(String javaType) {
-    SqlTypeName sqlTypeName = javaTypeToSqlTypes.get(javaType);
-    if (sqlTypeName == null) {
-      throw new UnsupportedSqlJavaTypeException(sqlTypeName);
+  public static DataType javaTypeToDataType(String javaType) {
+    switch (javaType) {
+      case "Boolean":
+        return DataTypes.BOOLEAN();
+      case "Integer":
+        return DataTypes.INT();
+      case "Long":
+        return DataTypes.BIGINT();
+      case "Double":
+        return DataTypes.DOUBLE();
+      case "Float":
+        return DataTypes.FLOAT();
+      case "String":
+        return DataTypes.STRING();
+      default:
+        throw new UnsupportedTypeException(javaType);
     }
-    return sqlTypeName;
   }
 
   public static boolean isNumeric(SqlTypeName sqlTypeName) {
