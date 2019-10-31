@@ -13,13 +13,21 @@ public class DRexContainsInvoker implements DRexInvoker {
   private final DRexInvoker needle;
   private final List<DRexInvoker> haystack;
 
+  private boolean isLiteral = true;
+  private Set<Object> candidateElements;
 
   DRexContainsInvoker(SqlTypeName resultType, DRexInvoker needle, List<DRexInvoker> haystack) {
     Preconditions.checkState(resultType == SqlTypeName.BOOLEAN);
     Preconditions.checkState(needle.getResultType() == haystack.get(0).getResultType());
 
+    candidateElements = new HashSet<>();
     for (DRexInvoker invoker : haystack) {
       Preconditions.checkState(needle.getResultType() == invoker.getResultType());
+      if (invoker instanceof DRexLiteralInvoker) {
+        candidateElements.add(invoker.invoke(null));
+        continue;
+      }
+      isLiteral = false;
     }
 
     this.resultType = resultType;
@@ -29,10 +37,16 @@ public class DRexContainsInvoker implements DRexInvoker {
 
   @Override
   public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
-    Set<Object> candidates = new HashSet<>();
-    for (DRexInvoker invoker : haystack) {
-      candidates.add(invoker.invoke(recordTuple));
+    Set<Object> candidates ;
+    if (!isLiteral) {
+      candidates = new HashSet<>();
+      for (DRexInvoker invoker : haystack) {
+        candidates.add(invoker.invoke(recordTuple));
+      }
+    } else {
+      candidates = candidateElements;
     }
+
 
     Object target = needle.invoke(recordTuple);
 
