@@ -1,9 +1,9 @@
 package org.apache.flink.table.exec;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.types.DSqlTypeUtils;
 
 public interface DRexInvoker extends Serializable {
 
@@ -11,41 +11,11 @@ public interface DRexInvoker extends Serializable {
 
   SqlTypeName getResultType();
 
-  // TODO: 2019-10-28 DSqlTypeUtils 类型对齐
   default Object getRecordValue(String recordValue) {
     if (recordValue == null) {
       return null;
     }
-    switch (getResultType()) {
-      // String
-      case VARCHAR:
-        return recordValue;
-      case CHAR:
-        char[] chars = recordValue.toCharArray();
-        assert chars.length == 1;
-        return chars[0];
-
-      // Boolean
-      case BOOLEAN:
-        return Boolean.parseBoolean(recordValue);
-
-      // Number
-      case SMALLINT:
-        return Byte.parseByte(recordValue);
-      case INTEGER:
-        return Integer.parseInt(recordValue);
-      case BIGINT:
-        return Long.parseLong(recordValue);
-      case FLOAT:
-        return Float.parseFloat(recordValue);
-      case DOUBLE:
-        return Double.parseDouble(recordValue);
-      case REAL:
-        return new BigDecimal(recordValue);
-
-      default:
-        throw new RuntimeException("Unsupported SqlType: " + getResultType());
-    }
+    return DSqlTypeUtils.stringToObject(recordValue, getResultType());
   }
 
 }

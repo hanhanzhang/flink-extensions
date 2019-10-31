@@ -13,6 +13,7 @@ import static org.apache.calcite.sql.type.SqlTypeName.TINYINT;
 import static org.apache.calcite.sql.type.SqlTypeName.VARCHAR;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.calcite.shaded.com.google.common.collect.ImmutableMap;
@@ -26,9 +27,13 @@ import org.apache.flink.table.types.DataType;
  *
  * String, Integer, Long, Double, Float, Boolean, BigDecimal
  *
+ * TODO: BigDecimal 精度
+ *
  * @author hanhan.zhang
  * */
 public class DSqlTypeUtils {
+
+  private static final int DEFAULT_SCALE = 8;
 
   private static Map<SqlTypeName, Class<?>> SqlTypeToJavaTypes = ImmutableMap.<SqlTypeName, Class<?>>builder()
       .put(SqlTypeName.BOOLEAN, Boolean.class)
@@ -159,6 +164,56 @@ public class DSqlTypeUtils {
     }
   }
 
+  public static Object stringToObject(String objectValue, SqlTypeName target) {
+    switch (target) {
+      case INTEGER:
+      case BIGINT:
+      case SMALLINT:
+      case FLOAT:
+      case DOUBLE:
+        return stringToNumber(objectValue, target);
+      case REAL:
+        return new BigDecimal(objectValue);
+
+        case BOOLEAN:
+        return Boolean.valueOf(objectValue);
+
+        case VARCHAR:
+        return objectValue;
+      case CHAR:
+        char[] chars = objectValue.toCharArray();
+        assert chars.length == 1;
+        return chars[0];
+
+      default:
+        throw new UnsupportedOperationException("Unsupported SqlType: " + target);
+    }
+  }
+
+  public static String objectToString(Object objectValue, SqlTypeName resultType) {
+    switch (resultType) {
+      case INTEGER:
+      case BIGINT:
+      case SMALLINT:
+      case FLOAT:
+      case DOUBLE:
+      case BOOLEAN:
+      case CHAR:
+        return String.valueOf(objectValue);
+
+      case VARCHAR:
+        return (String) objectValue;
+
+      case REAL:
+        BigDecimal value = (BigDecimal) objectValue;
+        value = value.setScale(DEFAULT_SCALE, RoundingMode.HALF_UP);
+        return value.toPlainString();
+
+      default:
+        throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
+    }
+  }
+
   public static Object numberToNumber(Number fromValue, SqlTypeName from, SqlTypeName to) {
     if (from == to) {
       return fromValue;
@@ -248,9 +303,6 @@ public class DSqlTypeUtils {
         throw new DRexUnsupportedException("Unsupported number type: '" + from +"'.");
     }
   }
-
-
-
 
   public static DataType fromTableSchema(TableSchema tableSchema) {
     DataTypes.Field[] fields = new DataTypes.Field[tableSchema.getFieldCount()];

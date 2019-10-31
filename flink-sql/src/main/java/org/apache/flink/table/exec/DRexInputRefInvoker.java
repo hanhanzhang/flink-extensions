@@ -8,7 +8,7 @@ public class DRexInputRefInvoker implements DRexInvoker {
   private final String fieldName;
   private final SqlTypeName resultType;
 
-  public DRexInputRefInvoker(String fieldName,  SqlTypeName resultType) {
+  DRexInputRefInvoker(String fieldName,  SqlTypeName resultType) {
     this.fieldName = fieldName;
     this.resultType = resultType;
   }

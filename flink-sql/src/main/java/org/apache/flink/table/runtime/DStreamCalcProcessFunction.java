@@ -1,5 +1,6 @@
 package org.apache.flink.table.runtime;
 
+import static org.apache.flink.table.utils.EncodingUtils.objectToString;
 import static org.apache.flink.types.DSchemaType.CONDITION;
 import static org.apache.flink.types.DSchemaType.PROJECT;
 import static org.apache.flink.types.DSqlTypeUtils.sqlTypeToJavaTypeAsString;
@@ -73,7 +74,7 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
 
       // TODO: 2019-10-28 类型处理
       Object value = entry.getValue().invoke(recordTuple);
-      recordValues.put(newFieldName, String.valueOf(value));
+      recordValues.put(newFieldName, objectToString(value));
     }
 
     out.collect(new DStreamRecord(new DRecordTuple(recordTypes, recordValues)));
