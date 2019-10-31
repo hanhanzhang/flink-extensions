@@ -12,7 +12,7 @@ public class SimplePrintDTableSink implements DAppendStreamTableSink {
 
   private final TableSchema tableSchema;
 
-  public SimplePrintDTableSink(TableSchema tableSchema) {
+  SimplePrintDTableSink(TableSchema tableSchema) {
     this.tableSchema = tableSchema;
   }
 
@@ -29,7 +29,7 @@ public class SimplePrintDTableSink implements DAppendStreamTableSink {
 
   public static class SimpleDataStreamSink extends DataStreamSink<DRecordTuple> {
 
-    public SimpleDataStreamSink(DataStream<DRecordTuple> inputStream) {
+    SimpleDataStreamSink(DataStream<DRecordTuple> inputStream) {
       super(inputStream, new StreamSink<>(new SimpleStreamSink()));
     }
 

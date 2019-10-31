@@ -13,9 +13,14 @@ public class DRexContainsInvoker implements DRexInvoker {
   private final DRexInvoker needle;
   private final List<DRexInvoker> haystack;
 
-  public DRexContainsInvoker(SqlTypeName resultType, DRexInvoker needle, List<DRexInvoker> haystack) {
+
+  DRexContainsInvoker(SqlTypeName resultType, DRexInvoker needle, List<DRexInvoker> haystack) {
     Preconditions.checkState(resultType == SqlTypeName.BOOLEAN);
     Preconditions.checkState(needle.getResultType() == haystack.get(0).getResultType());
+
+    for (DRexInvoker invoker : haystack) {
+      Preconditions.checkState(needle.getResultType() == invoker.getResultType());
+    }
 
     this.resultType = resultType;
     this.needle = needle;
@@ -24,14 +29,14 @@ public class DRexContainsInvoker implements DRexInvoker {
 
   @Override
   public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
-    Set<Object> values = new HashSet<>();
+    Set<Object> candidates = new HashSet<>();
     for (DRexInvoker invoker : haystack) {
-      values.add(invoker.invoke(recordTuple));
+      candidates.add(invoker.invoke(recordTuple));
     }
 
     Object target = needle.invoke(recordTuple);
 
-    return values.contains(target);
+    return candidates.contains(target);
   }
 
   @Override
