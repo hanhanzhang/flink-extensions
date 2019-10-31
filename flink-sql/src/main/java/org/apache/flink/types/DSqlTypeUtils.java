@@ -49,16 +49,6 @@ public class DSqlTypeUtils {
       .put(SqlTypeName.FLOAT, Float.class)
       .put(SqlTypeName.DOUBLE, Double.class)
 
-      // byte[]
-//      .put(SqlTypeName.VARBINARY, Byte[].class)
-//      .put(SqlTypeName.ARRAY, List.class)
-
-      // date
-//      .put(SqlTypeName.DATE, Date.class)
-//      .put(SqlTypeName.TIMESTAMP, Timestamp.class)
-//      .put(SqlTypeName.TIME, Time.class)
-//      .put(SqlTypeName.DECIMAL, BigDecimal.class)
-
       .build();
 
 
@@ -77,15 +67,6 @@ public class DSqlTypeUtils {
       .put(BigDecimal.class.getSimpleName(), SqlTypeName.REAL)
       .put(Float.class.getSimpleName(), SqlTypeName.FLOAT)
       .put(Double.class.getSimpleName(), SqlTypeName.DOUBLE)
-
-      // byte[]
-//      .put(Byte[].class.getSimpleName(), SqlTypeName.VARBINARY)
-//      .put(List.class.getSimpleName(), SqlTypeName.ARRAY)
-
-      // date
-//      .put(Date.class.getSimpleName(), SqlTypeName.DATE)
-//      .put(Timestamp.class.getSimpleName(), SqlTypeName.TIMESTAMP)
-//      .put(Time.class.getSimpleName(), SqlTypeName.TIME)
 
       .build();
 
@@ -146,7 +127,10 @@ public class DSqlTypeUtils {
     return sqlTypeName == FLOAT || sqlTypeName == DOUBLE || sqlTypeName == REAL;
   }
 
-  public static Object stringToNumber(String fromValue, SqlTypeName target) {
+  // --------------------------------------------------------------------------------------
+  // String convert Number, Boolean, Character
+  // --------------------------------------------------------------------------------------
+  public static Number stringToNumber(String fromValue, SqlTypeName target) {
     switch (target) {
       case INTEGER:
         return Integer.valueOf(fromValue);
@@ -158,10 +142,206 @@ public class DSqlTypeUtils {
         return Float.valueOf(fromValue);
       case DOUBLE:
         return Double.valueOf(fromValue);
+      case REAL:
+        return new BigDecimal(fromValue);
 
       default:
         throw new UnsupportedOperationException("Unsupported number type: " + target);
     }
+  }
+
+  public static Boolean stringToBoolean(String fromValue) {
+    return Boolean.valueOf(fromValue);
+  }
+
+  private static Character stringToChar(String fromValue) {
+    char[] chars = fromValue.toCharArray();
+    assert chars.length == 1;
+    return chars[0];
+  }
+
+  // --------------------------------------------------------------------------------------
+  // Number convert Number, String, Boolean, Character
+  // --------------------------------------------------------------------------------------
+  public static Number numberToNumber(Number numberValue, SqlTypeName from, SqlTypeName to) {
+    if (from == to) {
+      return numberValue;
+    }
+
+    switch (from) {
+      case INTEGER:
+      {
+        switch (to) {
+          case SMALLINT:
+            return numberValue.byteValue();
+          case DOUBLE:
+            return numberValue.doubleValue();
+          case FLOAT:
+            return numberValue.floatValue();
+          case BIGINT:
+            return numberValue.longValue();
+          case REAL:
+            return new BigDecimal(numberValue.intValue());
+          default:
+            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+        }
+      }
+      case DOUBLE:
+      {
+        switch (to) {
+          case SMALLINT:
+            return numberValue.byteValue();
+          case INTEGER:
+            return numberValue.intValue();
+          case FLOAT:
+            return numberValue.floatValue();
+          case BIGINT:
+            return numberValue.longValue();
+          case REAL:
+            return new BigDecimal(numberValue.doubleValue());
+          default:
+            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+        }
+      }
+      case FLOAT:
+      {
+        switch (to) {
+          case SMALLINT:
+            return numberValue.byteValue();
+          case INTEGER:
+            return numberValue.intValue();
+          case DOUBLE:
+            return numberValue.doubleValue();
+          case BIGINT:
+            return numberValue.longValue();
+          case REAL:
+            return new BigDecimal(numberValue.floatValue());
+          default:
+            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+        }
+      }
+      case BIGINT:
+      {
+        {
+          switch (to) {
+            case SMALLINT:
+              return numberValue.byteValue();
+            case INTEGER:
+              return numberValue.intValue();
+            case DOUBLE:
+              return numberValue.doubleValue();
+            case FLOAT:
+              return numberValue.floatValue();
+            case REAL:
+              return new BigDecimal(numberValue.longValue());
+            default:
+              throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+          }
+        }
+      }
+      case REAL:
+      {
+        {
+          switch (to) {
+            case SMALLINT:
+              return numberValue.byteValue();
+            case INTEGER:
+              return numberValue.intValue();
+            case DOUBLE:
+              return numberValue.doubleValue();
+            case FLOAT:
+              return numberValue.floatValue();
+            case BIGINT:
+              return numberValue.longValue();
+            default:
+              throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+          }
+        }
+      }
+      default:
+        throw new DRexUnsupportedException("Unsupported number type: '" + from +"'.");
+    }
+  }
+
+  public static String numberToString(Object numberValue) {
+    if (numberValue instanceof BigDecimal) {
+      BigDecimal value = (BigDecimal) numberValue;
+      value = value.setScale(DEFAULT_SCALE, RoundingMode.HALF_UP);
+      return value.toPlainString();
+    }
+
+    return String.valueOf(numberValue);
+  }
+
+  public static Boolean numberToBoolean(Number numberValue) {
+    String className = numberValue.getClass().getSimpleName();
+    switch (className) {
+      case "Integer":
+        return numberValue.intValue() == 1;
+      case "Long":
+        return numberValue.longValue() == 1;
+      case "Byte":
+        return numberValue.byteValue() == 1;
+      case "Float":
+        return numberValue.floatValue() == 0.0f;
+      case "Double":
+        return numberValue.doubleValue() == 0.0d;
+      case "BigDecimal":
+        BigDecimal decimalValue = (BigDecimal) numberValue;
+        return decimalValue.equals(BigDecimal.ONE);
+      default:
+        throw new DRexUnsupportedException("unsupported number type: " + className);
+    }
+  }
+
+  private static Character numberToCharacter(Number numberValue, SqlTypeName sqlType) {
+    throw new DRexUnsupportedException("Unsupported convert from '" + sqlType + "' to 'CHAR'.");
+  }
+
+  // --------------------------------------------------------------------------------------
+  // Boolean convert Number, String, Character
+  // --------------------------------------------------------------------------------------
+  public static Number booleanToNumber(boolean value, SqlTypeName target) {
+    switch (target) {
+      case INTEGER:
+        return value ? 1 : 0;
+      case SMALLINT:
+        return value ? (byte) 1 : (byte) 0;
+      case BIGINT:
+        return value ? 1L : 0L;
+      case FLOAT:
+        return value ? 1.0f : 0.0f;
+      case DOUBLE:
+        return value ? 1.0d : 0.0f;
+      case REAL:
+        return value ? BigDecimal.ONE : BigDecimal.ZERO;
+      default:
+        throw new DRexUnsupportedException("Unsupported number type: " + target);
+
+    }
+  }
+
+  private static Character booleanToCharacter(boolean value) {
+    return value ? '1' : '0';
+  }
+
+  // --------------------------------------------------------------------------------------
+  // Character convert Number, String, Boolean
+  // --------------------------------------------------------------------------------------
+  private static Number characterToNumber(Character c, SqlTypeName sqlTypeName) {
+    throw new DRexUnsupportedException("Unsupported convert from 'CHAR' to '" + sqlTypeName + "'.");
+  }
+
+  private static String characterToString(Character c) {
+    return String.valueOf(c);
+  }
+
+  private static Boolean characterToBoolean(Character c) {
+    return c != '0';
+  }
+
+  public static String booleanToString(boolean value) {
+    return String.valueOf(value);
   }
 
   public static Object stringToObject(String objectValue, SqlTypeName target) {
@@ -214,93 +394,206 @@ public class DSqlTypeUtils {
     }
   }
 
-  public static Object numberToNumber(Number fromValue, SqlTypeName from, SqlTypeName to) {
-    if (from == to) {
-      return fromValue;
-    }
+  public static Object castObject(Object objectValue, SqlTypeName resultType) {
+    String className = objectValue.getClass().getSimpleName();
+    switch (className) {
+      case "Integer":
+      {
+        Integer value = (Integer) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return numberToNumber(value, INTEGER, resultType);
 
-    switch (from) {
-      case INTEGER:
-      {
-        switch (to) {
-          case DOUBLE:
-            return fromValue.doubleValue();
-          case FLOAT:
-            return fromValue.floatValue();
-          case BIGINT:
-            return fromValue.longValue();
-          case REAL:
-            return new BigDecimal(fromValue.intValue());
+          case BOOLEAN:
+            return numberToBoolean(value);
+
+          case CHAR:
+            return numberToCharacter(value, INTEGER);
+          case VARCHAR:
+            return numberToString(value);
+
           default:
-            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
         }
       }
-      case DOUBLE:
+      case "Long":
       {
-        switch (to) {
+        Long value = (Long) objectValue;
+        switch (resultType) {
           case INTEGER:
-            return fromValue.intValue();
+          case BIGINT:
+          case SMALLINT:
           case FLOAT:
-            return fromValue.floatValue();
-          case BIGINT:
-            return fromValue.longValue();
-          case REAL:
-            return new BigDecimal(fromValue.doubleValue());
-          default:
-            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
-        }
-      }
-      case FLOAT:
-      {
-        switch (to) {
-          case INTEGER:
-            return fromValue.intValue();
           case DOUBLE:
-            return fromValue.doubleValue();
-          case BIGINT:
-            return fromValue.longValue();
           case REAL:
-            return new BigDecimal(fromValue.floatValue());
+            return numberToNumber(value, BIGINT, resultType);
+
+          case BOOLEAN:
+            return numberToBoolean(value);
+
+          case CHAR:
+            return numberToCharacter(value, BIGINT);
+          case VARCHAR:
+            return numberToString(value);
+
           default:
-            throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
         }
       }
-      case BIGINT:
+      case "Float":
       {
-        {
-          switch (to) {
-            case INTEGER:
-              return fromValue.intValue();
-            case DOUBLE:
-              return fromValue.doubleValue();
-            case FLOAT:
-              return fromValue.floatValue();
-            case REAL:
-              return new BigDecimal(fromValue.longValue());
-            default:
-              throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
-          }
+        Float value = (Float) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return numberToNumber(value, FLOAT, resultType);
+
+          case BOOLEAN:
+            return numberToBoolean(value);
+
+          case CHAR:
+            return numberToCharacter(value, FLOAT);
+          case VARCHAR:
+            return numberToString(value);
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
         }
       }
-      case REAL:
+      case "Double":
       {
-        {
-          switch (to) {
-            case INTEGER:
-              return fromValue.intValue();
-            case DOUBLE:
-              return fromValue.doubleValue();
-            case FLOAT:
-              return fromValue.floatValue();
-            case BIGINT:
-              return fromValue.longValue();
-            default:
-              throw new DRexUnsupportedException("Unsupported convert '" + from + "' to '" + to + "'.");
-          }
+        Double value = (Double) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return numberToNumber(value, DOUBLE, resultType);
+
+          case BOOLEAN:
+            return numberToBoolean(value);
+
+          case CHAR:
+            return numberToCharacter(value, DOUBLE);
+          case VARCHAR:
+            return numberToString(value);
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
         }
       }
+      case "BigDecimal":
+      {
+        BigDecimal value = (BigDecimal) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return numberToNumber(value, REAL, resultType);
+
+          case BOOLEAN:
+            return numberToBoolean(value);
+
+          case CHAR:
+            return numberToCharacter(value, REAL);
+          case VARCHAR:
+            return numberToString(value);
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
+        }
+      }
+
+      case "Boolean":
+      {
+        boolean value = (boolean) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return booleanToNumber(value, resultType);
+
+          case BOOLEAN:
+            return objectValue;
+
+          case CHAR:
+            return booleanToCharacter(value);
+          case VARCHAR:
+           return booleanToString(value);
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
+        }
+      }
+
+      case "String":
+      {
+        String value = (String) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+            return stringToNumber(value, resultType);
+
+          case BOOLEAN:
+            return stringToBoolean(value);
+
+          case CHAR:
+            return stringToChar(value);
+          case VARCHAR:
+            return value;
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
+        }
+      }
+      case "Character":
+      {
+        Character value = (Character) objectValue;
+        switch (resultType) {
+          case INTEGER:
+          case BIGINT:
+          case SMALLINT:
+          case FLOAT:
+          case DOUBLE:
+          case REAL:
+              return characterToNumber(value, resultType);
+
+          case BOOLEAN:
+            return characterToBoolean(value);
+
+          case CHAR:
+           return objectValue;
+          case VARCHAR:
+            return characterToString(value);
+
+          default:
+            throw new UnsupportedOperationException("Unsupported SqlType: " + resultType);
+        }
+      }
+
       default:
-        throw new DRexUnsupportedException("Unsupported number type: '" + from +"'.");
+        throw new UnsupportedOperationException("Unsupported javaType: " + className);
     }
   }
 

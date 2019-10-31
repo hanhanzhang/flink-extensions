@@ -3,31 +3,47 @@ package org.apache.flink.table.exec;
 
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
+import org.apache.flink.util.Preconditions;
 
 public class DRexBooleanInvoker implements DRexInvoker{
 
-  private final boolean resultValue;
-
+  private final SqlTypeName resultType;
   private final DRexInvoker invoker;
+  private final RexBooleanType type;
 
-  DRexBooleanInvoker(boolean resultValue, DRexInvoker invoker) {
-    this.resultValue = resultValue;
+  DRexBooleanInvoker(SqlTypeName resultType, DRexInvoker invoker, RexBooleanType type) {
+    Preconditions.checkState(resultType == SqlTypeName.BOOLEAN);
+    Preconditions.checkState(invoker.getResultType() == SqlTypeName.BOOLEAN);
+
+    this.resultType = resultType;
     this.invoker = invoker;
+    this.type = type;
   }
 
   @Override
   public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
-    Object object = invoker.invoke(recordTuple);
-    if (object instanceof Boolean) {
-      Boolean value = (Boolean) object;
-      return value == resultValue;
-    }
+    boolean value = (boolean) invoker.invoke(recordTuple);
 
-    return new DRexInvokeException("rex call result type must be boolean, actual type: " + invoker.getResultType());
+    switch (type) {
+      case FALSE:
+      case NOT:
+        return !value;
+      case TRUE:
+        return value;
+      default:
+        throw new DRexUnsupportedException("Unsupported RexBooleanType: " + type);
+    }
   }
 
   @Override
   public SqlTypeName getResultType() {
-    return SqlTypeName.BOOLEAN;
+    return resultType;
   }
+
+  public enum RexBooleanType {
+
+    NOT, TRUE, FALSE
+
+  }
+
 }

@@ -1,5 +1,7 @@
 package org.apache.flink.table.exec;
 
+import static org.apache.flink.types.DSqlTypeUtils.castObject;
+
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.types.DRecordTuple;
 
@@ -15,7 +17,7 @@ public class DRexLiteralInvoker implements DRexInvoker {
 
   @Override
   public Object invoke(DRecordTuple recordTuple) throws DRexInvokeException {
-    return literalValue;
+    return castObject(literalValue, resultType);
   }
 
   @Override

@@ -1,10 +1,15 @@
 package org.apache.flink.table.exec;
 
+import static org.apache.flink.types.DSqlTypeUtils.booleanToNumber;
+import static org.apache.flink.types.DSqlTypeUtils.booleanToString;
 import static org.apache.flink.types.DSqlTypeUtils.isBigDecimal;
 import static org.apache.flink.types.DSqlTypeUtils.isBoolean;
 import static org.apache.flink.types.DSqlTypeUtils.isNumeric;
 import static org.apache.flink.types.DSqlTypeUtils.isString;
+import static org.apache.flink.types.DSqlTypeUtils.numberToBoolean;
 import static org.apache.flink.types.DSqlTypeUtils.numberToNumber;
+import static org.apache.flink.types.DSqlTypeUtils.numberToString;
+import static org.apache.flink.types.DSqlTypeUtils.stringToBoolean;
 import static org.apache.flink.types.DSqlTypeUtils.stringToNumber;
 
 import java.math.BigDecimal;
@@ -39,56 +44,47 @@ public class DRexCastInvoker implements DRexInvoker {
 
     // String --> Boolean
     if (isString(from) && isBoolean(resultType)) {
-      String value = (String) invoker.invoke(recordTuple);
-      return Boolean.valueOf(value);
+      return stringToBoolean((String) invoker.invoke(recordTuple));
     }
 
     // String --> BigDecimal
     if (isString(from) && isBigDecimal(resultType)) {
-      String value = (String) invoker.invoke(recordTuple);
-      return new BigDecimal(value);
+      return stringToNumber((String) invoker.invoke(recordTuple), resultType);
     }
 
     // Boolean --> Number
     if (isBoolean(from) && isNumeric(resultType)) {
-      Boolean value = (Boolean) invoker.invoke(recordTuple);
-      return value ? 1 : 0;
+      return booleanToNumber((boolean) invoker.invoke(recordTuple), resultType);
     }
 
     // Boolean -> BigDecimal
     if (isBoolean(from) && isBigDecimal(resultType)) {
-      Boolean value = (Boolean) invoker.invoke(recordTuple);
-      return value ? BigDecimal.ONE : BigDecimal.ZERO;
+      return booleanToNumber((boolean) invoker.invoke(recordTuple), resultType);
     }
 
     // Number -> Boolean
     if (isNumeric(from) && isBoolean(resultType)) {
-      Number value = (Number) invoker.invoke(recordTuple);
-      return value.doubleValue() != 0.0d;
+      return numberToBoolean((Number) invoker.invoke(recordTuple));
     }
 
     // BigDecimal -> Boolean
     if (isBigDecimal(from) && isBoolean(resultType)) {
-      BigDecimal value = (BigDecimal) invoker.invoke(recordTuple);
-      return value.compareTo(BigDecimal.ZERO) != 0;
+      return numberToBoolean((Number) invoker.invoke(recordTuple));
     }
 
     // Number --> String
     if (isNumeric(from) && isString(resultType)) {
-      Object value = invoker.invoke(recordTuple);
-      return String.valueOf(value);
+      return numberToString(invoker.invoke(recordTuple));
     }
 
     // Boolean --> String
     if (isBoolean(from) && isString(resultType)) {
-      Object value = invoker.invoke(recordTuple);
-      return String.valueOf(value);
+      return booleanToString((boolean) invoker.invoke(recordTuple));
     }
 
     // BigDecimal --> String
     if (isBigDecimal(from) && isString(resultType)) {
-      BigDecimal value = (BigDecimal) invoker.invoke(recordTuple);
-      return value.toString();
+      return numberToString(invoker.invoke(recordTuple));
     }
 
     // Number, BigDecimal -> Number, BigDecimal

@@ -1,8 +1,8 @@
 package org.apache.flink.table.runtime;
 
-import static org.apache.flink.table.utils.EncodingUtils.objectToString;
 import static org.apache.flink.types.DSchemaType.CONDITION;
 import static org.apache.flink.types.DSchemaType.PROJECT;
+import static org.apache.flink.types.DSqlTypeUtils.objectToString;
 import static org.apache.flink.types.DSqlTypeUtils.sqlTypeToJavaTypeAsString;
 
 import com.google.gson.reflect.TypeToken;
@@ -14,6 +14,7 @@ import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.table.exec.DRexInvoker;
 import org.apache.flink.types.DRecordTuple;
 import org.apache.flink.types.DSchemaTuple;
+import org.apache.flink.types.DSqlTypeUtils;
 import org.apache.flink.types.DStreamRecord;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
@@ -68,13 +69,14 @@ public class DStreamCalcProcessFunction extends ProcessFunction<DStreamRecord, D
     Map<String, String> recordTypes = new HashMap<>();
     Map<String, String> recordValues = new HashMap<>();
     for (Entry<String, DRexInvoker> entry : projectFieldInvokers.entrySet()) {
+      SqlTypeName resultType = entry.getValue().getResultType();
+
       String newFieldName = entry.getKey();
-      String newFieldType = sqlTypeToJavaTypeAsString(entry.getValue().getResultType());
+      String newFieldType = sqlTypeToJavaTypeAsString(resultType);
       recordTypes.put(newFieldName, newFieldType);
 
-      // TODO: 2019-10-28 类型处理
       Object value = entry.getValue().invoke(recordTuple);
-      recordValues.put(newFieldName, objectToString(value));
+      recordValues.put(newFieldName, objectToString(value, resultType));
     }
 
     out.collect(new DStreamRecord(new DRecordTuple(recordTypes, recordValues)));

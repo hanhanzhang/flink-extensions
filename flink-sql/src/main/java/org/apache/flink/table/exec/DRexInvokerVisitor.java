@@ -6,6 +6,7 @@ import static org.apache.calcite.sql.fun.SqlStdOperatorTable.DIVIDE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.EQUALS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.GREATER_THAN;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.GREATER_THAN_OR_EQUAL;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IN;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_FALSE;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_DISTINCT_FROM;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.IS_NOT_FALSE;
@@ -18,7 +19,9 @@ import static org.apache.calcite.sql.fun.SqlStdOperatorTable.LESS_THAN_OR_EQUAL;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MINUS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MOD;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.MULTIPLY;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.NOT;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.NOT_EQUALS;
+import static org.apache.calcite.sql.fun.SqlStdOperatorTable.NOT_IN;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.OR;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.PLUS;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.REINTERPRET;
@@ -49,6 +52,7 @@ import org.apache.calcite.sql.SqlFunction;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.flink.table.exec.DArithmeticExpressionInvoker.ArithmeticType;
+import org.apache.flink.table.exec.DRexBooleanInvoker.RexBooleanType;
 import org.apache.flink.table.exec.DRexCompareInvoker.RexCompareType;
 import org.apache.flink.table.exec.DRexLogicalInvoker.RexLogicalType;
 import org.apache.flink.table.functions.ScalarFunction;
@@ -192,31 +196,32 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
     else if (operator == OR) {
       return generateLogicalExpression(rexCall.getOperands(), RexLogicalType.OR, this);
     }
-//    else if (operator == NOT) {
-//
-//    }
+    else if (operator == NOT) {
+      return generateRexBoolean(rexCall.getOperands(), resultType, RexBooleanType.NOT, this);
+    }
 //    else if (operator == CASE) {
 //
 //    }
     // TODO: 尚未校验
     else if (operator == IS_TRUE) {
-      return generateRexBoolean(rexCall.getOperands(), resultType, true, this);
+      return generateRexBoolean(rexCall.getOperands(), resultType, RexBooleanType.TRUE, this);
     }
     else if (operator == IS_NOT_TRUE) {
-      return generateRexBoolean(rexCall.getOperands(), resultType, false, this);
+      return generateRexBoolean(rexCall.getOperands(), resultType, RexBooleanType.FALSE, this);
     }
     else if (operator == IS_FALSE) {
-      return generateRexBoolean(rexCall.getOperands(), resultType, false, this);
+      return generateRexBoolean(rexCall.getOperands(), resultType, RexBooleanType.FALSE, this);
     }
     else if (operator == IS_NOT_FALSE) {
-      return generateRexBoolean(rexCall.getOperands(), resultType, true, this);
+      return generateRexBoolean(rexCall.getOperands(), resultType, RexBooleanType.TRUE, this);
     }
-//    else if (operator == IN) {
-//
-//    }
-//    else if (operator == NOT_IN) {
-//
-//    }
+    else if (operator == IN) {
+      return generateIn(rexCall.getOperands(), resultType, this);
+    }
+    else if (operator == NOT_IN) {
+      DRexInvoker invoker = generateIn(rexCall.getOperands(), resultType, this);
+      return new DRexBooleanInvoker(SqlTypeName.BOOLEAN, invoker, RexBooleanType.NOT);
+    }
 
     else if (operator == CAST || operator == REINTERPRET) {
       return generateCast(rexCall.getOperands(), resultType, this);
@@ -349,16 +354,24 @@ public class DRexInvokerVisitor implements RexVisitor<DRexInvoker> {
     return new DRexCastInvoker(resultType, rexInvoker);
   }
 
-  private static DRexInvoker generateRexBoolean(List<RexNode> operands, SqlTypeName resultType, boolean resultValue, RexVisitor<DRexInvoker> visitor) {
+  private static DRexInvoker generateRexBoolean(List<RexNode> operands, SqlTypeName resultType, RexBooleanType type, RexVisitor<DRexInvoker> visitor) {
     List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
 
     assert operandInvokers.size() == 1;
-    assert resultType == SqlTypeName.BOOLEAN;
 
-    return new DRexBooleanInvoker(resultValue, operandInvokers.get(0));
+    return new DRexBooleanInvoker(resultType, operandInvokers.get(0), type);
+  }
+
+  private static DRexInvoker generateIn(List<RexNode> operands, SqlTypeName resultType, RexVisitor<DRexInvoker> visitor) {
+    List<DRexInvoker> operandInvokers = rexNodeToRexInvoker(operands, visitor);
+    DRexInvoker needle = operandInvokers.get(0);
+    List<DRexInvoker> haystack = operandInvokers.subList(1, operandInvokers.size());
+
+    return new DRexContainsInvoker(resultType, needle, haystack);
   }
 
   private static List<DRexInvoker> rexNodeToRexInvoker(List<RexNode> operands, RexVisitor<DRexInvoker> visitor) {
     return operands.stream().map(rexNode -> rexNode.accept(visitor)).collect(Collectors.toList());
   }
+
 }
