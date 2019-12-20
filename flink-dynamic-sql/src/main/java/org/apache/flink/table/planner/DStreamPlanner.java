@@ -1,4 +1,4 @@
-package org.apache.flink.table.delegation;
+package org.apache.flink.table.planner;
 
 import static java.lang.String.format;
 
@@ -35,6 +35,8 @@ import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.ConnectorCatalogTable;
 import org.apache.flink.table.catalog.FunctionCatalog;
 import org.apache.flink.table.catalog.ObjectPath;
+import org.apache.flink.table.delegation.Executor;
+import org.apache.flink.table.delegation.Planner;
 import org.apache.flink.table.executor.StreamExecutor;
 import org.apache.flink.table.expressions.ExpressionBridge;
 import org.apache.flink.table.expressions.PlannerExpression;

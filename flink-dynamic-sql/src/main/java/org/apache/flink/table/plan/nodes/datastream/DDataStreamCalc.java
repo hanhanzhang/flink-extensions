@@ -19,7 +19,7 @@ import org.apache.calcite.util.Pair;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
-import org.apache.flink.table.delegation.DStreamPlanner;
+import org.apache.flink.table.planner.DStreamPlanner;
 import org.apache.flink.table.exec.DRexInvoker;
 import org.apache.flink.table.exec.DRexInvokerVisitor;
 import org.apache.flink.table.runtime.DStreamCalcProcessFunction;

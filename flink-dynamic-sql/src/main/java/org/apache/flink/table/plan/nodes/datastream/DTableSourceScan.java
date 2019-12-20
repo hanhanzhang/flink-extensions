@@ -17,7 +17,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.StreamQueryConfig;
-import org.apache.flink.table.delegation.DStreamPlanner;
+import org.apache.flink.table.planner.DStreamPlanner;
 import org.apache.flink.table.plan.nodes.PhysicalTableSourceScan;
 import org.apache.flink.table.sources.DProjectFieldsSelectProcessFunction;
 import org.apache.flink.table.sources.DStreamTableSource;

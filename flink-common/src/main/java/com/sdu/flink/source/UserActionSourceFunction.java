@@ -31,7 +31,7 @@ public class UserActionSourceFunction extends RichParallelSourceFunction<UserAct
       boolean isForeigners = count++ % 2 == 0;
       String action = actions[random.nextInt(actions.length)];
       long timestamp = System.currentTimeMillis();
-      ctx.collectWithTimestamp(new UserActionEntry(uid, age, isForeigners, action, timestamp), timestamp);
+//      ctx.collectWithTimestamp(new UserActionEntry(uid, age, isForeigners, action, timestamp), timestamp);
 
       safeSleep();
     }

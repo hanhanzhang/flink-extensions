@@ -1,4 +1,4 @@
-package com.sdu.flink.sql.dynamic;
+package com.sdu.flink.dsql.sink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -8,11 +8,11 @@ import org.apache.flink.table.DAppendStreamTableSink;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.types.DRecordTuple;
 
-public class SimplePrintDTableSink implements DAppendStreamTableSink {
+public class ConsoleOutputAppendTableSink implements DAppendStreamTableSink {
 
   private final TableSchema tableSchema;
 
-  SimplePrintDTableSink(TableSchema tableSchema) {
+  public ConsoleOutputAppendTableSink(TableSchema tableSchema) {
     this.tableSchema = tableSchema;
   }
 

@@ -1,4 +1,4 @@
-package com.sdu.flink.table;
+package com.sdu.flink.dsql;
 
 import com.sdu.flink.utils.JsonUtils;
 import java.util.ArrayList;
@@ -16,8 +16,9 @@ public class TableStatementBuilder {
 
     List<DColumnStatement> inputTableColumns = new ArrayList<>();
     inputTableColumns.add(new DColumnStatement("uid", "String"));
+    inputTableColumns.add(new DColumnStatement("uname", "String"));
+    inputTableColumns.add(new DColumnStatement("sex", "String"));
     inputTableColumns.add(new DColumnStatement("age", "Integer"));
-    inputTableColumns.add(new DColumnStatement("isForeigners", "Boolean"));
     inputTableColumns.add(new DColumnStatement("action", "String"));
     inputTableColumns.add(new DColumnStatement("timestamp", "Long"));
     inputTable.setColumns(inputTableColumns);
@@ -27,8 +28,9 @@ public class TableStatementBuilder {
     sinkTable.setTableName("user_behavior");
     List<DColumnStatement> sinkTableColumns = new ArrayList<>();
     sinkTableColumns.add(new DColumnStatement("uid", "String"));
+    sinkTableColumns.add(new DColumnStatement("uname", "String"));
+    sinkTableColumns.add(new DColumnStatement("sex", "String"));
     sinkTableColumns.add(new DColumnStatement("age", "Integer"));
-    sinkTableColumns.add(new DColumnStatement("isForeigners", "Boolean"));
     sinkTableColumns.add(new DColumnStatement("action", "String"));
     sinkTableColumns.add(new DColumnStatement("timestamp", "Long"));
     sinkTable.setColumns(sinkTableColumns);
