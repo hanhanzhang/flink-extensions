@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>flink-datastream</module>
-        <module>flink-sql</module>
+        <module>flink-dynamic-sql</module>
         <module>flink-state</module>
         <module>flink-network</module>
         <module>blink-sql</module>
