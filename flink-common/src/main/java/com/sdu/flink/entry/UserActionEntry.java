@@ -1,4 +1,4 @@
-package com.sdu.flink.utils;
+package com.sdu.flink.entry;
 
 import java.io.Serializable;
 import lombok.Data;

@@ -3,7 +3,7 @@ package com.sdu.flink.dsql;
 import com.sdu.flink.dsql.functions.TextFormatScalarFunction;
 import com.sdu.flink.dsql.functions.UserActionStreamSourceFunction;
 import com.sdu.flink.dsql.sink.ConsoleOutputAppendTableSink;
-import com.sdu.flink.utils.UserActionEntry;
+import com.sdu.flink.entry.UserActionEntry;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DStreamTableSourceImpl;
 import org.apache.flink.table.api.DTableEnvironmentUtils;

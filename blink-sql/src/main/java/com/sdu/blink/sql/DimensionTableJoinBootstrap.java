@@ -1,6 +1,6 @@
 package com.sdu.blink.sql;
 
-import com.sdu.flink.sink.SimplePrintAppendSink;
+import com.sdu.flink.sink.ConsoleOutputAppendStreamTableSink;
 import com.sdu.flink.utils.SqlTypeUtils;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,7 +26,7 @@ import org.apache.flink.types.Row;
  *
  * @author hanhan.zhang
  * */
-public class SqlDimTableJoinBootstrap {
+public class DimensionTableJoinBootstrap {
 
 	// 信息
 	private static final Map<String, Row> DATA = new HashMap<>();
@@ -198,11 +198,11 @@ public class SqlDimTableJoinBootstrap {
 				.field("math", DataTypes.INT())
 				.field("chinese", DataTypes.INT())
 				.build();
-		tableEnv.registerTableSink("user_result", new SimplePrintAppendSink(sinkTableSchema));
+		tableEnv.registerTableSink("user_result", new ConsoleOutputAppendStreamTableSink(sinkTableSchema));
 
 		tableEnv.sqlUpdate(sqlText);
 
-		tableEnv.execute("SqlDimTableJoinBootstrap");
+		tableEnv.execute("DimensionTableJoinBootstrap");
 
 	}
 

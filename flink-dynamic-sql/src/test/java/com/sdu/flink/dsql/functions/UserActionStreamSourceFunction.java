@@ -4,7 +4,7 @@ import static com.sdu.flink.utils.FakeDataUtils.buildAction;
 import static com.sdu.flink.utils.FakeDataUtils.buildNameAndSex;
 
 import com.sdu.flink.utils.RandomUtils;
-import com.sdu.flink.utils.UserActionEntry;
+import com.sdu.flink.entry.UserActionEntry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

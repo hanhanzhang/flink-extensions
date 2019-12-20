@@ -1,5 +1,6 @@
 package com.sdu.flink.sink;
 
+import com.sdu.flink.functions.sink.ConsoleOutputSinkFunction;
 import com.sdu.flink.utils.SqlTypeUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -13,11 +14,11 @@ import org.apache.flink.types.Row;
 /**
  * @author hanhan.zhang
  * */
-public class SimplePrintAppendSink implements AppendStreamTableSink<Row> {
+public class ConsoleOutputAppendStreamTableSink implements AppendStreamTableSink<Row> {
 
 	final TableSchema tableSchema;
 
-	public SimplePrintAppendSink(TableSchema tableSchema) {
+	public ConsoleOutputAppendStreamTableSink(TableSchema tableSchema) {
 		this.tableSchema = tableSchema;
 	}
 
@@ -34,11 +35,12 @@ public class SimplePrintAppendSink implements AppendStreamTableSink<Row> {
 	@Override
 	public void emitDataStream(DataStream<Row> dataStream) {
 		// Blink 使用 consumeDataStream() 消费数据, 故该接口不实现
+		dataStream.addSink(new ConsoleOutputSinkFunction(tableSchema.getFieldNames()));
 	}
 
 	@Override
 	public DataStreamSink<?> consumeDataStream(DataStream<Row> dataStream) {
-		return new SimpleDataStreamSink(dataStream, tableSchema.getFieldNames());
+		return new ConsoleOutputDataStreamSink(dataStream, tableSchema.getFieldNames());
 	}
 
 
