@@ -1,4 +1,4 @@
-package com.sdu.flink.operator;
+package com.sdu.flink.stream;
 
 import com.sdu.flink.entry.CaptureActionEntry;
 import com.sdu.flink.entry.UserActionEntry;

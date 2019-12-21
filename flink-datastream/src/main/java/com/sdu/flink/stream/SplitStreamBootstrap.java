@@ -1,4 +1,4 @@
-package com.sdu.flink.operator;
+package com.sdu.flink.stream;
 
 import java.util.ArrayList;
 import java.util.Collections;

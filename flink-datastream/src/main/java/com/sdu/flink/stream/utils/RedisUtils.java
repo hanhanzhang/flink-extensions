@@ -1,4 +1,4 @@
-package com.sdu.flink.operator.utils;
+package com.sdu.flink.stream.utils;
 
 import java.util.Map;
 import java.util.Map.Entry;

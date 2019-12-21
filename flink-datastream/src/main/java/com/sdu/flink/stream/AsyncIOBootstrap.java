@@ -1,7 +1,7 @@
-package com.sdu.flink.operator;
+package com.sdu.flink.stream;
 
-import com.sdu.flink.operator.utils.DataNotFoundException;
-import com.sdu.flink.operator.utils.RedisUtils;
+import com.sdu.flink.stream.utils.DataNotFoundException;
+import com.sdu.flink.stream.utils.RedisUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;

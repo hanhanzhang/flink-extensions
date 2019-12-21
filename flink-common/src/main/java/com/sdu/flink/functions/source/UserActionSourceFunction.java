@@ -20,7 +20,6 @@ public class UserActionSourceFunction extends RichParallelSourceFunction<UserAct
   private volatile boolean running;
 
   public UserActionSourceFunction() {
-
   }
 
   @Override
