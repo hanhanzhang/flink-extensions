@@ -45,7 +45,7 @@ public class BroadcastStateBootstrap {
         .returns(UserActionEntry.class);
 
     // 行为拦截规则流
-    KeySelector<UserActionEntry, String> keySelector = UserActionEntry::getUid;
+    KeySelector<UserActionEntry, Integer> keySelector = UserActionEntry::getUid;
     DataStream<UserActionEntry> userActionStream = actionStream.keyBy(keySelector);
     DataStream<CaptureActionEntry> captureActionStream = env.addSource(new CaptureActionSourceFunction(2000))
         .returns(CaptureActionEntry.class);

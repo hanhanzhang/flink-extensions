@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class UserActionEntry implements Serializable {
 
-  private String uid;
+  private int uid;
   private String uname;
   private String sex;
   private int age;

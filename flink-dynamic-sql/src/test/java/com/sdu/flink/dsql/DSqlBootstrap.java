@@ -21,7 +21,7 @@ public class DSqlBootstrap {
 
     // 注册数据源
     TableSchema inputTableSchema = TableSchema.builder()
-        .field("uid", DataTypes.STRING())
+        .field("uid", DataTypes.INT())
         .field("uname", DataTypes.STRING())
         .field("sex", DataTypes.STRING())
         .field("age", DataTypes.INT())
@@ -37,7 +37,7 @@ public class DSqlBootstrap {
 
     // 注册输出
     TableSchema outputTableSchema = TableSchema.builder()
-        .field("uid", DataTypes.STRING())
+        .field("uid", DataTypes.INT())
         .field("uname", DataTypes.STRING())
         .field("sex", DataTypes.STRING())
         .field("age", DataTypes.INT())
@@ -47,7 +47,7 @@ public class DSqlBootstrap {
 
     String sqlText = "INSERT INTO user_behavior "
         + "SELECT "
-        + "TEXT_FORMAT(uid) as uid, uname, sex, age + 1 as age, action "
+        + "TEXT_FORMAT(CAST(uid AS VARCHAR)) as uid, uname, sex, age + 1 as age, action "
         + "FROM user_action "
         + "WHERE action <> '登录'";
 

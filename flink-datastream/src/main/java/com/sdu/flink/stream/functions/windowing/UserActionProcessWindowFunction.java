@@ -6,6 +6,7 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.Preconditions;
 
 public class UserActionProcessWindowFunction
     extends ProcessWindowFunction<Integer, Tuple4<String, String, Long, Integer>, Tuple2<String, String>, TimeWindow> {
@@ -22,6 +23,8 @@ public class UserActionProcessWindowFunction
       Tuple4<String, String, Long, Integer> output = Tuple4.of(
           key.f0, key.f1, windowStart, userActionCnt);
       out.collect(output);
+
+      Preconditions.checkState(!iterator.hasNext(), "Window aggregate must have one element !");
     }
   }
 }

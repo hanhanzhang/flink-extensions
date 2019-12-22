@@ -2,6 +2,7 @@ package com.sdu.flink.dsql.functions;
 
 import static com.sdu.flink.utils.FakeDataUtils.buildAction;
 import static com.sdu.flink.utils.FakeDataUtils.buildNameAndSex;
+import static com.sdu.flink.utils.RandomUtils.nextInt;
 
 import com.sdu.flink.utils.RandomUtils;
 import com.sdu.flink.entry.UserActionEntry;
@@ -28,7 +29,7 @@ public class UserActionStreamSourceFunction extends DStreamSourceFunction<UserAc
   public DRecordTupleFactory<UserActionEntry> getRecordTupleFactory() {
     return (UserActionEntry entry) -> {
       Map<String, String> recordValues = new HashMap<>();
-      recordValues.put("uid", entry.getUid());
+      recordValues.put("uid", String.valueOf(entry.getUid()));
       recordValues.put("uname", entry.getUname());
       recordValues.put("sex", entry.getSex());
       recordValues.put("age", String.valueOf(entry.getAge()));
@@ -36,7 +37,7 @@ public class UserActionStreamSourceFunction extends DStreamSourceFunction<UserAc
       recordValues.put("timestamp", String.valueOf(entry.getTimestamp()));
 
       Map<String, String> recordTypes = new HashMap<>();
-      recordTypes.put("uid", "String");
+      recordTypes.put("uid", "Integer");
       recordTypes.put("uname", "String");
       recordTypes.put("sex", "String");
       recordTypes.put("age", "Integer");
@@ -57,10 +58,10 @@ public class UserActionStreamSourceFunction extends DStreamSourceFunction<UserAc
     while (running) {
       Pair<String, String> nameAndSex = buildNameAndSex();
       // 10 - 15
-      int age = RandomUtils.nextInt(6, 10);
+      int age = nextInt(6, 10);
 
       UserActionEntry entry = new UserActionEntry();
-      entry.setUid(UUID.randomUUID().toString());
+      entry.setUid(nextInt(1000, 10000));
       entry.setUname(nameAndSex.getLeft());
       entry.setSex(nameAndSex.getRight());
       entry.setAge(age);
