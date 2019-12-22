@@ -12,6 +12,7 @@
 
     <artifactId>flink-network</artifactId>
     <packaging>pom</packaging>
+    
     <modules>
         <module>flink-network-akka</module>
         <module>flink-network-netty</module>

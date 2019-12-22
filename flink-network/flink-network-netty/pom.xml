@@ -18,6 +18,12 @@
             <artifactId>flink-runtime_2.12</artifactId>
             <version>1.9.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.sdu.flink</groupId>
+            <artifactId>flink-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

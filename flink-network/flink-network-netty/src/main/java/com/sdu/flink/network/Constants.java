@@ -6,7 +6,7 @@ import org.apache.flink.runtime.jobgraph.IntermediateDataSetID;
 import org.apache.flink.runtime.jobgraph.IntermediateResultPartitionID;
 import org.apache.flink.util.AbstractID;
 
-class Constants {
+public class Constants {
 
   static int TASK_MANAGER_PORT_1 = 8912;
   static int TASK_MANAGER_PORT_2 = 8913;
@@ -22,6 +22,6 @@ class Constants {
    * **/
   static IntermediateDataSetID IDS = new IntermediateDataSetID(new AbstractID(100, 101));
   static IntermediateResultPartitionID IRP = new IntermediateResultPartitionID(201, 202);
-  static ResultPartitionID RP = new ResultPartitionID(IRP, TASK_EXECUTION_ATTEMPT_1);
+  public static final ResultPartitionID RP = new ResultPartitionID(IRP, TASK_EXECUTION_ATTEMPT_1);
 
 }
