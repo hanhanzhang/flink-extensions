@@ -1,4 +1,4 @@
-package com.sdu.flink.runtime.network;
+package com.sdu.flink.runtime.network.partition;
 
 import static com.sdu.flink.utils.FakeDataUtils.buildAction;
 import static com.sdu.flink.utils.FakeDataUtils.buildNameAndSex;
@@ -13,12 +13,12 @@ import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.runtime.io.network.api.writer.RecordWriter;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
 
-public class UserActionEmitter extends Thread {
+public class UpstreamStreamRecordEmitter extends Thread {
 
   private final RecordWriter<SerializationDelegate<UserActionEntry>> writer;
   private volatile boolean running;
 
-  public UserActionEmitter(RecordWriter<SerializationDelegate<UserActionEntry>> writer) {
+  UpstreamStreamRecordEmitter(RecordWriter<SerializationDelegate<UserActionEntry>> writer) {
     this.writer = writer;
     this.running = true;
   }
@@ -50,7 +50,7 @@ public class UserActionEmitter extends Thread {
     }
   }
 
-  public void close() {
+  void close() {
     this.running = false;
   }
 

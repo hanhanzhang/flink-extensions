@@ -8,6 +8,9 @@ import org.apache.flink.util.AbstractID;
 
 public class NetworkConstants {
 
+  // 最大并发度
+  public static int TASK_MAX_PARALLELISM = 128;
+
   static final ExecutionAttemptID TASK_EXECUTION_ATTEMPT_1 = new ExecutionAttemptID(31, 32);
   static final ExecutionAttemptID TASK_EXECUTION_ATTEMPT_2 = new ExecutionAttemptID(51, 52);
 
@@ -16,6 +19,7 @@ public class NetworkConstants {
 
   public static final ResultPartitionID RP = new ResultPartitionID(IRP, TASK_EXECUTION_ATTEMPT_1);
 
+  public static final String UPSTREAM_TASK_NAME = "Task0(1/2)";
 
   private NetworkConstants() {
 
