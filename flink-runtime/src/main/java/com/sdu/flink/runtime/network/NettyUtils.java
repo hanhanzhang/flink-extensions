@@ -1,4 +1,4 @@
-package com.sdu.flink.network;
+package com.sdu.flink.runtime.network;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

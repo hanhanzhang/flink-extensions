@@ -1,4 +1,4 @@
-package com.sdu.flink.rpc.akka;
+package com.sdu.flink.runtime.network.rpc;
 
 import akka.actor.ActorSystem;
 import java.util.concurrent.CompletableFuture;

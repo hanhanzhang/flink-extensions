@@ -1,4 +1,4 @@
-package com.sdu.flink.network;
+package com.sdu.flink.runtime.network;
 
 import static com.sdu.flink.utils.FakeDataUtils.buildAction;
 import static com.sdu.flink.utils.FakeDataUtils.buildNameAndSex;

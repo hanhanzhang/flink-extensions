@@ -11,9 +11,9 @@
     <modules>
         <module>flink-datastream</module>
         <module>flink-dynamic-sql</module>
-        <module>flink-network</module>
         <module>blink-sql</module>
         <module>flink-common</module>
+        <module>flink-runtime</module>
     </modules>
 
     <properties>
