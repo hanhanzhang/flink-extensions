@@ -8,6 +8,7 @@ import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -126,11 +127,23 @@ public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
 
 
         // 异常处理模块
+        System.out.println(">>>>>>>>>>>ReturnType<<<<<<<<<<<<<<<\n" + jcMethodDecl.restype.toString());
+        JCBinary condition = treeMaker.Binary(Tag.EQ, memberAccess(treeMaker, names, "this.throwException"), treeMaker.Literal(true));
+        // 异常返回默认值: null
+        JCVariableDecl nullValue = createVariableLabel(treeMaker, names,
+            treeMaker.Modifiers(0), "nullValue", jcMethodDecl.restype, treeMaker.Literal(""));
+        JCReturn returnExceptionValue = treeMaker.Return(treeMaker.Ident(nullValue.name));
+
+        JCIf ifBlock = treeMaker.If(condition,
+            treeMaker.Throw(treeMaker.Ident(getNameFromString(names, "e"))),
+            returnExceptionValue);
         JCTree.JCBlock catchBlock = treeMaker.Block(0, List.of(
             // 异常计数及打印日志
             onExceptionStatement,
+            nullValue,
             // 判断是否抛出异常
-            treeMaker.Throw(treeMaker.Ident(getNameFromString(names, "e")))));
+            ifBlock
+            ));
 
         // 方法体Finally
         JCTree.JCBlock finallyBlock = treeMaker.Block(0, List.of(afterStatement));
