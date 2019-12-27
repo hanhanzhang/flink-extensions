@@ -45,6 +45,8 @@ public class TaskManagerBootstrap implements Bootstrap {
      *
      *        2.2.3 NettyShuffleEnvironmentOptions.NETWORK_EXCLUSIVE_BUFFERS_REQUEST_TIMEOUT_MILLISECONDS
      *
+     *        2.2.4 NettyShuffleEnvironmentOptions.NETWORK_REQUEST_BACKOFF_INITIAL
+     *
      *    2.3 Netty相关参数
      *
      *        2.3.1 NettyShuffleEnvironmentOptions.DATA_PORT

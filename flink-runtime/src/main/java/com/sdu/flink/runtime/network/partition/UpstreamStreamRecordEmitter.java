@@ -12,13 +12,16 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.runtime.io.network.api.writer.RecordWriter;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
+import org.apache.flink.streaming.runtime.streamrecord.StreamElement;
+import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
+import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 public class UpstreamStreamRecordEmitter extends Thread {
 
-  private final RecordWriter<SerializationDelegate<UserActionEntry>> writer;
+  private final RecordWriter<SerializationDelegate<StreamElement>> writer;
   private volatile boolean running;
 
-  UpstreamStreamRecordEmitter(RecordWriter<SerializationDelegate<UserActionEntry>> writer) {
+  UpstreamStreamRecordEmitter(RecordWriter<SerializationDelegate<StreamElement>> writer) {
     this.writer = writer;
     this.running = true;
   }
@@ -27,7 +30,12 @@ public class UpstreamStreamRecordEmitter extends Thread {
   public void run() {
     TypeSerializer<UserActionEntry> serializer = Types.POJO(UserActionEntry.class)
         .createSerializer(new ExecutionConfig());
-    SerializationDelegate<UserActionEntry> serializationDelegate = new SerializationDelegate<>(serializer);
+    StreamElementSerializer<UserActionEntry> elementSerializer = new StreamElementSerializer<>(serializer);
+    SerializationDelegate<StreamElement> serializationDelegate = new SerializationDelegate<>(elementSerializer);
+
+    StreamRecord<UserActionEntry> element = new StreamRecord<>(null);
+
+    safeSleep(1000 * 10000L);
 
     while (running) {
       try {
@@ -39,11 +47,12 @@ public class UpstreamStreamRecordEmitter extends Thread {
         actionEntry.setAge(nextInt(10, 50));
         actionEntry.setAction(buildAction());
         actionEntry.setTimestamp(System.currentTimeMillis());
+        element.replace(actionEntry, actionEntry.getTimestamp());
 
-        serializationDelegate.setInstance(actionEntry);
+        serializationDelegate.setInstance(element);
         writer.emit(serializationDelegate);
 
-        safeSleep();
+        safeSleep(1000);
       } catch (Exception e) {
         // ignore
       }
@@ -54,9 +63,9 @@ public class UpstreamStreamRecordEmitter extends Thread {
     this.running = false;
   }
 
-  private static void safeSleep() {
+  private static void safeSleep(long milliseconds) {
     try {
-      TimeUnit.MILLISECONDS.sleep(1000);
+      TimeUnit.MILLISECONDS.sleep(milliseconds);
     } catch (Exception e) {
       // ignore
     }
