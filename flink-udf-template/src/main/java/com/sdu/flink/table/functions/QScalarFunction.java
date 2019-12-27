@@ -1,5 +1,6 @@
 package com.sdu.flink.table.functions;
 
+import com.sdu.flink.table.functions.enhance.DefaultValueCreator;
 import com.sdu.flink.table.metric.TimeWindowHistogram;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Histogram;
@@ -8,7 +9,8 @@ import org.apache.flink.table.functions.ScalarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class QScalarFunction extends ScalarFunction implements UserFunctionInterceptor {
+public abstract class QScalarFunction extends ScalarFunction
+    implements UserFunctionInterceptor, DefaultValueCreator {
 
   private static final Logger LOG = LoggerFactory.getLogger(QScalarFunction.class);
 

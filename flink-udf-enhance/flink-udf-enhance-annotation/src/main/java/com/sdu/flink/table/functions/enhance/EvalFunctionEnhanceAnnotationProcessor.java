@@ -1,6 +1,7 @@
 package com.sdu.flink.table.functions.enhance;
 
 import static com.sdu.flink.table.functions.enhance.utils.ProcessorUtils.createVariableLabel;
+import static com.sdu.flink.table.functions.enhance.utils.ProcessorUtils.getDefaultValueMethodName;
 import static com.sdu.flink.table.functions.enhance.utils.ProcessorUtils.getNameFromString;
 import static com.sdu.flink.table.functions.enhance.utils.ProcessorUtils.memberAccess;
 
@@ -8,7 +9,6 @@ import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -124,14 +124,22 @@ public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
                 // 输入参数
                 List.of(treeMaker.Ident(getNameFromString(names, "e")))
             ));
-
-
         // 异常处理模块
-        System.out.println(">>>>>>>>>>>ReturnType<<<<<<<<<<<<<<<\n" + jcMethodDecl.restype.toString());
         JCBinary condition = treeMaker.Binary(Tag.EQ, memberAccess(treeMaker, names, "this.throwException"), treeMaker.Literal(true));
-        // 异常返回默认值: null
+        // 选择默认值方法名
+        System.out.println(">>>>>>>>>>>>>>>> RESULT TYPE <<<<<<<<<<<<<<\n" + jcMethodDecl.restype.toString());
+        String defaultValueMethodName = getDefaultValueMethodName(jcMethodDecl.restype);
+        JCExpressionStatement defaultValueMethodStatement = treeMaker.Exec(
+            treeMaker.Apply(
+                // 输入参数类型
+                List.nil(),
+                // 方法名
+                memberAccess(treeMaker, names, "this." + defaultValueMethodName),
+                // 输入参数
+                List.nil()));
+        // 定义默认值变量
         JCVariableDecl nullValue = createVariableLabel(treeMaker, names,
-            treeMaker.Modifiers(0), "nullValue", jcMethodDecl.restype, treeMaker.Literal(""));
+            treeMaker.Modifiers(0), "nullValue", jcMethodDecl.restype, defaultValueMethodStatement.expr);
         JCReturn returnExceptionValue = treeMaker.Return(treeMaker.Ident(nullValue.name));
 
         JCIf ifBlock = treeMaker.If(condition,
@@ -157,7 +165,7 @@ public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
                     "e", memberAccess(treeMaker, names,"java.lang.Exception"), null), catchBlock)),
                 finallyBlock
         )));
-        System.out.println(">>>>>>>>>>>>>>>" + jcMethodDecl.getBody().toString());
+        System.out.println(">>>>>>>>>>>>>>>Code<<<<<<<<<<<<<<\n" + jcMethodDecl.getBody().toString());
       }
       super.visitMethodDef(jcMethodDecl);
     }
