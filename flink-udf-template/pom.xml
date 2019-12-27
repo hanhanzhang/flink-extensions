@@ -21,7 +21,7 @@
 
     <dependency>
       <groupId>com.sdu.flink</groupId>
-      <artifactId>flink-udf-enhance</artifactId>
+      <artifactId>flink-udf-enhance-annotation</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 

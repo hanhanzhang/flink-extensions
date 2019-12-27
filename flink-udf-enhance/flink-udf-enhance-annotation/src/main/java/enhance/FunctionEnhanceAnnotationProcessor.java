@@ -1,11 +1,9 @@
-package com.sdu.flink.udf.enhance;
+package enhance;
 
 import com.sun.tools.javac.api.JavacTrees;
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.List;
@@ -122,9 +120,10 @@ public class FunctionEnhanceAnnotationProcessor extends AbstractProcessor {
         // 异常处理模块
         JCTree.JCBlock catchBlock = treeMaker.Block(0, List.of(
             // 判断
-            treeMaker.If(treeMaker.Binary(Tag.EQ, memberAccess("com.sdu.flink.table.functions.isThrowException"), treeMaker.Literal(true)),
-                treeMaker.Throw(treeMaker.Ident(getNameFromString("e"))),
-                null)
+//            treeMaker.If(treeMaker.Binary(Tag.EQ, memberAccess("com.sdu.flink.table.functions.isThrowException"), treeMaker.Literal(true)),
+//                treeMaker.Throw(treeMaker.Ident(getNameFromString("e"))),
+//                null)
+            treeMaker.Throw(treeMaker.Ident(getNameFromString("e")))
         ));
 
         // 方法体Finally
