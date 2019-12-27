@@ -1,8 +1,8 @@
-package com.sdu.flink.table.functions;
+package com.sdu.flink.table.functions.template;
 
-import com.sdu.flink.table.functions.enhance.FunctionEnhance;
+import com.sdu.flink.table.functions.enhance.ScalarFunctionEnhance;
 
-@FunctionEnhance
+@ScalarFunctionEnhance
 public class SimpleScalarFunction extends QScalarFunction {
 
   public String eval(String str) {

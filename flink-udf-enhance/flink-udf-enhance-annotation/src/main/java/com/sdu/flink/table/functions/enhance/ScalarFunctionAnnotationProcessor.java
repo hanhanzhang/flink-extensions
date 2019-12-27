@@ -30,7 +30,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 
-public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
+public class ScalarFunctionAnnotationProcessor extends AbstractProcessor {
 
   // 编译时期打日志
   private Messager messager;
@@ -54,8 +54,8 @@ public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     // 获取标记FunctionEnhance的元素
-    Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(FunctionEnhance.class);
-    messager.printMessage(Kind.NOTE, "Start process 'FunctionEnhance' annotation ...");
+    Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ScalarFunctionEnhance.class);
+    messager.printMessage(Kind.NOTE, "Start process 'ScalarFunctionEnhance' annotation ...");
 
     elements.forEach((Element e) -> {
       // 获取当前元素的JCTree对象
@@ -72,7 +72,7 @@ public class EvalFunctionEnhanceAnnotationProcessor extends AbstractProcessor {
   @Override
   public Set<String> getSupportedAnnotationTypes() {
     Set<String> supportedAnnotationTypes = new HashSet<>();
-    supportedAnnotationTypes.add(FunctionEnhance.class.getName());
+    supportedAnnotationTypes.add(ScalarFunctionEnhance.class.getName());
     return supportedAnnotationTypes;
   }
 

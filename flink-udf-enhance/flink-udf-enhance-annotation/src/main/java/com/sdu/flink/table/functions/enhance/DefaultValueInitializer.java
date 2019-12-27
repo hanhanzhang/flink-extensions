@@ -3,7 +3,7 @@ package com.sdu.flink.table.functions.enhance;
 import java.util.Collections;
 import java.util.Map;
 
-public interface DefaultValueCreator {
+public interface DefaultValueInitializer {
 
   default boolean getDefaultBooleanValue() {
     return false;
