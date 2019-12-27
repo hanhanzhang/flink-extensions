@@ -1,1 +1,1 @@
-enhance.FunctionEnhanceAnnotationProcessor
+com.sdu.flink.table.functions.enhance.EvalFunctionEnhanceAnnotationProcessor

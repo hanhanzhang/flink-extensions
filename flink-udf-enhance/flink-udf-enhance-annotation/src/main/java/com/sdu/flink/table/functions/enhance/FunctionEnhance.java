@@ -1,4 +1,4 @@
-package enhance;
+package com.sdu.flink.table.functions.enhance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
