@@ -35,8 +35,6 @@ public class UpstreamStreamRecordEmitter extends Thread {
 
     StreamRecord<UserActionEntry> element = new StreamRecord<>(null);
 
-    safeSleep(1000 * 10000L);
-
     while (running) {
       try {
         UserActionEntry actionEntry = new UserActionEntry();
@@ -52,7 +50,7 @@ public class UpstreamStreamRecordEmitter extends Thread {
         serializationDelegate.setInstance(element);
         writer.emit(serializationDelegate);
 
-        safeSleep(1000);
+        safeSleep(1);
       } catch (Exception e) {
         // ignore
       }

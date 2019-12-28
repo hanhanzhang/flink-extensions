@@ -12,6 +12,7 @@ import static org.apache.flink.configuration.NettyShuffleEnvironmentOptions.NETW
 import static org.apache.flink.configuration.TaskManagerOptions.MEMORY_SEGMENT_SIZE;
 import static org.apache.flink.runtime.io.network.partition.ResultPartitionType.PIPELINED_BOUNDED;
 
+import com.sdu.flink.entry.UserActionEntry;
 import com.sdu.flink.runtime.Bootstrap;
 import com.sdu.flink.runtime.network.ReceiveEndpointBufferPoolFactory;
 import com.sdu.flink.runtime.taskexecutor.TaskManagerBootstrap;
@@ -19,11 +20,16 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MetricOptions;
 import org.apache.flink.configuration.NettyShuffleEnvironmentOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.metrics.MetricGroup;
+import org.apache.flink.runtime.io.disk.iomanager.IOManager;
+import org.apache.flink.runtime.io.disk.iomanager.IOManagerAsync;
 import org.apache.flink.runtime.io.network.ConnectionID;
 import org.apache.flink.runtime.io.network.metrics.InputChannelMetrics;
 import org.apache.flink.runtime.io.network.partition.ResultPartitionID;
@@ -36,6 +42,10 @@ import org.apache.flink.runtime.metrics.MetricRegistryConfiguration;
 import org.apache.flink.runtime.metrics.MetricRegistryImpl;
 import org.apache.flink.runtime.metrics.groups.TaskManagerMetricGroup;
 import org.apache.flink.runtime.metrics.scope.ScopeFormats;
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.streaming.runtime.io.CheckpointedInputGate;
+import org.apache.flink.streaming.runtime.io.InputProcessorUtil;
+import org.apache.flink.streaming.runtime.io.StreamTaskNetworkInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +55,8 @@ public class DownstreamTMBootstrap implements Bootstrap {
 
   private TaskManagerBootstrap taskManagerBootstrap;
   private SingleInputGate inputGate;
+  private StreamTaskNetworkInput taskNetworkInput;
+  private DownstreamStreamRecordConsumer streamRecordConsumer;
 
   private MetricGroup createParentMetricGroup(Configuration configuration) throws Exception {
     ScopeFormats scopeFormats = ScopeFormats.fromConfig(configuration);
@@ -85,6 +97,8 @@ public class DownstreamTMBootstrap implements Bootstrap {
      *    InputChannel存储上游Task拉取的数据
      *
      * 3: StreamTaskNetworkInput
+     *
+     *    StreamTaskNetworkInput负责从InputChannel读取数据, 然后由StreamOperator处理收到的消息
      * */
     int networkBuffersPerChannel = configuration.getInteger(NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_PER_CHANNEL);
     int floatingNetworkBuffersPerGate = configuration.getInteger(NettyShuffleEnvironmentOptions.NETWORK_EXTRA_BUFFERS_PER_GATE);
@@ -107,6 +121,14 @@ public class DownstreamTMBootstrap implements Bootstrap {
     ResultPartitionID resultPartitionID = inputChannel.getPartitionId();
     inputGate.setInputChannel(resultPartitionID.getPartitionId(), inputChannel);
 
+    //
+    TypeSerializer<UserActionEntry> serializer = Types.POJO(UserActionEntry.class)
+        .createSerializer(new ExecutionConfig());
+    IOManager ioManager = new IOManagerAsync();
+    CheckpointedInputGate checkpointedInputGate = InputProcessorUtil.createCheckpointedInputGate(null, CheckpointingMode.AT_LEAST_ONCE,
+        ioManager, inputGate, configuration, DOWNSTREAM_TASK_NAME);
+    taskNetworkInput = new StreamTaskNetworkInput(checkpointedInputGate, serializer, ioManager, 0);
+    streamRecordConsumer = new DownstreamStreamRecordConsumer(taskNetworkInput);
   }
 
   @Override
@@ -117,11 +139,15 @@ public class DownstreamTMBootstrap implements Bootstrap {
      * 订阅上游Task数据结果集
      * */
     inputGate.setup();
+    streamRecordConsumer.start();
   }
 
   @Override
   public void stop() throws Exception {
-
+    taskManagerBootstrap.stop();
+    inputGate.close();
+    taskNetworkInput.close();
+    streamRecordConsumer.close();
   }
 
   public static void main(String[] args) throws Exception {
