@@ -50,7 +50,7 @@ public class UpstreamStreamRecordEmitter extends Thread {
         serializationDelegate.setInstance(element);
         writer.emit(serializationDelegate);
 
-        safeSleep(1);
+        safeSleep(10);
       } catch (Exception e) {
         // ignore
       }

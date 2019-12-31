@@ -1,11 +1,11 @@
 package com.sdu.flink.table.functions.template;
 
-import com.sdu.flink.table.functions.UserFunctionInterceptor;
+import com.sdu.flink.table.functions.UserDefinedFunctionEnhancer;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.functions.TableFunction;
 
 public abstract class QTableFunction<T> extends TableFunction<T>
-    implements UserFunctionInterceptor {
+    implements UserDefinedFunctionEnhancer {
 
   @Override
   public void open(FunctionContext context) throws Exception {

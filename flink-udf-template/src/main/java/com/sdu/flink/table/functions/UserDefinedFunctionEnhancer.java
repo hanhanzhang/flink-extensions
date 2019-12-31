@@ -1,6 +1,6 @@
 package com.sdu.flink.table.functions;
 
-public interface UserFunctionInterceptor {
+public interface UserDefinedFunctionEnhancer {
 
   void before();
 
