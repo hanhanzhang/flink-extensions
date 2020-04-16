@@ -170,8 +170,6 @@ public class ScalarFunctionAnnotationProcessor extends AbstractProcessor {
       super.visitMethodDef(jcMethodDecl);
     }
 
-
-
   }
 
 }

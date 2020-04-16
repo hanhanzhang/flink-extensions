@@ -9,9 +9,8 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>flink-dynamic-sql</module>
-        <module>blink-sql</module>
         <module>flink-common</module>
+        <module>flink-dynamic-sql</module>
         <module>flink-udf-enhance</module>
         <module>flink-udf-template</module>
     </modules>
