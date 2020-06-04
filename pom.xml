@@ -13,6 +13,7 @@
         <module>flink-dynamic-sql</module>
         <module>flink-udf-enhance</module>
         <module>flink-udf-template</module>
+        <module>flink-extended-sql</module>
     </modules>
 
     <properties>
