@@ -1,10 +1,10 @@
 package org.apache.flink.table.types;
 
+import com.sdu.flink.utils.JsonUtils;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.flink.table.api.TableException;
-import org.apache.flink.table.utils.JsonUtils;
 
 public class SqlSchemaTuple implements Serializable {
 

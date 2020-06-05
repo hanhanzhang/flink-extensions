@@ -1,5 +1,6 @@
 package org.apache.flink.table.runtime
 
+import com.sdu.flink.utils.JsonUtils
 import org.apache.flink.api.common.functions.util.FunctionUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.{ResultTypeQueryable, RowTypeInfo}
@@ -11,7 +12,6 @@ import org.apache.flink.table.runtime.types.{CRow, CRowTypeInfo}
 import org.apache.flink.table.types.schema.SqlCalcSchema
 import org.apache.flink.table.types.{RowDataType, SqlSchemaTuple}
 import org.apache.flink.table.util.Logging
-import org.apache.flink.table.utils.JsonUtils
 import org.apache.flink.types.Row
 import org.apache.flink.util.Collector
 
@@ -50,16 +50,16 @@ class DynamicCRowProcessRunner(
     cRowWrapper.setChange(in.change)
 
     val value = in.row
-    val rowType = value.getField(0).asInstanceOf
+    val rowType = value.getField(0).asInstanceOf[String]
     cRowWrapper.setRowType(rowType)
 
     if (rowType.equals(RowDataType.SCHEMA.name())) {
-      val schema: String = value.getField(2).asInstanceOf
+      val schema: String = value.getField(1).asInstanceOf
       FunctionUtils.closeFunction(function)
       function = generateFunction(schema)
       cRowWrapper.collect(schema)
     } else if (rowType.equals(RowDataType.DATA.name())) {
-      val data = value.getField(2).asInstanceOf
+      val data = value.getField(1).asInstanceOf[String]
       val columns = JsonUtils.fromJson(data, classOf[Row])
       function.processElement(
         columns,

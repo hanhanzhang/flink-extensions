@@ -1,9 +1,9 @@
 package org.apache.flink.table.runtime
 
+import com.sdu.flink.utils.JsonUtils
 import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.table.runtime.types.CRow
-import org.apache.flink.table.utils.JsonUtils
 import org.apache.flink.types.Row
 
 class DynamicSqlSinkMapFunction extends RichMapFunction[CRow, CRow] {
@@ -17,7 +17,7 @@ class DynamicSqlSinkMapFunction extends RichMapFunction[CRow, CRow] {
 
   override def map(in: CRow): CRow = {
     outCRow.change = in.change
-    outCRow.row = JsonUtils.fromJson(in.row.getField(1).asInstanceOf, classOf[Row])
+    outCRow.row = JsonUtils.fromJson(in.row.getField(1).asInstanceOf[String], classOf[Row])
     outCRow
   }
 

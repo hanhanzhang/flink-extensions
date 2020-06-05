@@ -1,14 +1,13 @@
 package org.apache.flink.table.runtime
 
-import org.apache.flink.table.types.RowDataType
-import org.apache.flink.table.utils.JsonUtils
+import com.sdu.flink.utils.JsonUtils
 import org.apache.flink.types.Row
 
 class DynamicCRowWrappingCollector extends CRowWrappingCollector {
 
   var outRow: Row = new Row(2)
 
-  def setRowType(rowType: RowDataType): Unit = {
+  def setRowType(rowType: String): Unit = {
     outRow.setField(0, rowType)
   }
 

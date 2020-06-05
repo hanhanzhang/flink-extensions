@@ -3,6 +3,7 @@ package org.apache.flink.table.api;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.flink.util.CollectionUtil.isNullOrEmpty;
 
+import com.sdu.flink.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import org.apache.flink.table.runtime.types.CRow;
 import org.apache.flink.table.types.RowDataType;
 import org.apache.flink.table.types.SqlSchemaTuple;
 import org.apache.flink.table.types.schema.SqlScanSchema;
-import org.apache.flink.table.utils.JsonUtils;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
