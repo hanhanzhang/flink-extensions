@@ -54,7 +54,7 @@ class DynamicCRowProcessRunner(
     cRowWrapper.setRowType(rowType)
 
     if (rowType.equals(RowDataType.SCHEMA.name())) {
-      val schema: String = value.getField(1).asInstanceOf
+      val schema = value.getField(1).asInstanceOf[String]
       FunctionUtils.closeFunction(function)
       function = generateFunction(schema)
       cRowWrapper.collect(schema)

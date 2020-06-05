@@ -1,7 +1,6 @@
 package org.apache.flink.table.api;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.apache.flink.util.CollectionUtil.isNullOrEmpty;
 
 import com.sdu.flink.utils.JsonUtils;
 import java.util.ArrayList;
@@ -93,8 +92,8 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
 
     SqlScanSchema scan = schemaTuple.getStreamNodeSchema(streamNodePath, SqlScanSchema.class);
     Preconditions.checkState(scan != null);
-    Preconditions.checkArgument(isNullOrEmpty(scan.getSourceFieldNames()));
-    Preconditions.checkArgument(isNullOrEmpty(scan.getSelectFieldNames()));
+    Preconditions.checkArgument(isNotEmpty(scan.getSourceFieldNames()));
+    Preconditions.checkArgument(isNotEmpty(scan.getSelectFieldNames()));
     Map<String, Integer> sourceFieldNameToIndexes = new HashMap<>();
     int index = 0;
     for (String fieldName : scan.getSourceFieldNames()) {

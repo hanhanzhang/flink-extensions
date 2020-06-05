@@ -1,0 +1,192 @@
+
+public class DynamicDataStreamCalcRule$54 extends org.apache.flink.streaming.api.functions.ProcessFunction {
+
+
+  final org.apache.flink.types.Row out =
+      new org.apache.flink.types.Row(5);
+
+  private org.apache.flink.types.Row in1;
+
+
+  public DynamicDataStreamCalcRule$54() throws Exception {
+
+
+  }
+
+
+
+
+  @Override
+  public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
+
+
+  }
+
+  @Override
+  public void processElement(Object _in1, org.apache.flink.streaming.api.functions.ProcessFunction.Context ctx, org.apache.flink.util.Collector c) throws Exception {
+    in1 = (org.apache.flink.types.Row) _in1;
+
+    boolean isNull$41 = (java.lang.String) in1.getField(2) == null;
+    java.lang.String result$40;
+    if (isNull$41) {
+      result$40 = "";
+    }
+    else {
+      result$40 = (java.lang.String) (java.lang.String) in1.getField(2);
+    }
+
+
+    boolean isNull$36 = (java.lang.String) in1.getField(0) == null;
+    java.lang.String result$35;
+    if (isNull$36) {
+      result$35 = "";
+    }
+    else {
+      result$35 = (java.lang.String) (java.lang.String) in1.getField(0);
+    }
+
+
+    boolean isNull$45 = (java.lang.String) in1.getField(4) == null;
+    java.lang.String result$44;
+    if (isNull$45) {
+      result$44 = "";
+    }
+    else {
+      result$44 = (java.lang.String) (java.lang.String) in1.getField(4);
+    }
+
+
+    boolean isNull$39 = (java.lang.Integer) in1.getField(1) == null;
+    int result$38;
+    if (isNull$39) {
+      result$38 = -1;
+    }
+    else {
+      result$38 = (java.lang.Integer) in1.getField(1);
+    }
+
+
+    boolean isNull$43 = (java.lang.Long) in1.getField(3) == null;
+    long result$42;
+    if (isNull$43) {
+      result$42 = -1L;
+    }
+    else {
+      result$42 = (java.lang.Long) in1.getField(3);
+    }
+
+
+
+
+
+
+
+
+
+    java.lang.String result$46 = "\u7537";
+
+    boolean isNull$48 = isNull$45 || false;
+    boolean result$47;
+    if (isNull$48) {
+      result$47 = false;
+    }
+    else {
+      result$47 = result$44.compareTo(result$46) == 0;
+    }
+
+
+    boolean result$52 = false;
+    boolean isNull$53 = false;
+    if (!isNull$48 && !result$47) {
+      // left expr is false, result is always false
+      // skip right expr
+    } else {
+
+
+
+    int result$49 = 22;
+
+    boolean isNull$51 = isNull$39 || false;
+    boolean result$50;
+    if (isNull$51) {
+      result$50 = false;
+    }
+    else {
+      result$50 = result$38 >= result$49;
+    }
+
+
+      if (isNull$48) {
+        // left is null (unknown)
+        if (isNull$51 || result$50) {
+          isNull$53 = true;
+        }
+      } else {
+        // left is true
+        if (isNull$51) {
+          isNull$53 = true;
+        } else if (result$50) {
+          result$52 = true;
+        }
+      }
+    }
+
+    if (result$52) {
+
+
+    if (isNull$36) {
+      out.setField(0, null);
+    }
+    else {
+      out.setField(0, result$35);
+    }
+
+
+
+    java.lang.String result$37 = "\u7537";
+
+    if (false) {
+      out.setField(1, null);
+    }
+    else {
+      out.setField(1, result$37);
+    }
+
+
+
+    if (isNull$39) {
+      out.setField(2, null);
+    }
+    else {
+      out.setField(2, result$38);
+    }
+
+
+
+    if (isNull$41) {
+      out.setField(3, null);
+    }
+    else {
+      out.setField(3, result$40);
+    }
+
+
+
+    if (isNull$43) {
+      out.setField(4, null);
+    }
+    else {
+      out.setField(4, result$42);
+    }
+
+      c.collect(out);
+    }
+
+  }
+
+  @Override
+  public void close() throws Exception {
+
+
+  }
+}

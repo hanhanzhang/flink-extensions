@@ -1,0 +1,154 @@
+
+public class DynamicDataStreamCalcRule$44 extends org.apache.flink.streaming.api.functions.ProcessFunction {
+
+
+  final org.apache.flink.types.Row out =
+      new org.apache.flink.types.Row(5);
+
+  private org.apache.flink.types.Row in1;
+
+
+  public DynamicDataStreamCalcRule$44() throws Exception {
+
+
+  }
+
+
+
+
+  @Override
+  public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
+
+
+  }
+
+  @Override
+  public void processElement(Object _in1, org.apache.flink.streaming.api.functions.ProcessFunction.Context ctx, org.apache.flink.util.Collector c) throws Exception {
+    in1 = (org.apache.flink.types.Row) _in1;
+
+    boolean isNull$36 = (java.lang.String) in1.getField(2) == null;
+    java.lang.String result$35;
+    if (isNull$36) {
+      result$35 = "";
+    }
+    else {
+      result$35 = (java.lang.String) (java.lang.String) in1.getField(2);
+    }
+
+
+    boolean isNull$31 = (java.lang.String) in1.getField(0) == null;
+    java.lang.String result$30;
+    if (isNull$31) {
+      result$30 = "";
+    }
+    else {
+      result$30 = (java.lang.String) (java.lang.String) in1.getField(0);
+    }
+
+
+    boolean isNull$40 = (java.lang.String) in1.getField(4) == null;
+    java.lang.String result$39;
+    if (isNull$40) {
+      result$39 = "";
+    }
+    else {
+      result$39 = (java.lang.String) (java.lang.String) in1.getField(4);
+    }
+
+
+    boolean isNull$34 = (java.lang.Integer) in1.getField(1) == null;
+    int result$33;
+    if (isNull$34) {
+      result$33 = -1;
+    }
+    else {
+      result$33 = (java.lang.Integer) in1.getField(1);
+    }
+
+
+    boolean isNull$38 = (java.lang.Long) in1.getField(3) == null;
+    long result$37;
+    if (isNull$38) {
+      result$37 = -1L;
+    }
+    else {
+      result$37 = (java.lang.Long) in1.getField(3);
+    }
+
+
+
+
+
+
+
+
+    java.lang.String result$41 = "\u5973";
+
+    boolean isNull$43 = isNull$40 || false;
+    boolean result$42;
+    if (isNull$43) {
+      result$42 = false;
+    }
+    else {
+      result$42 = result$39.compareTo(result$41) == 0;
+    }
+
+    if (result$42) {
+
+
+    if (isNull$31) {
+      out.setField(0, null);
+    }
+    else {
+      out.setField(0, result$30);
+    }
+
+
+
+    java.lang.String result$32 = "\u5973";
+
+    if (false) {
+      out.setField(1, null);
+    }
+    else {
+      out.setField(1, result$32);
+    }
+
+
+
+    if (isNull$34) {
+      out.setField(2, null);
+    }
+    else {
+      out.setField(2, result$33);
+    }
+
+
+
+    if (isNull$36) {
+      out.setField(3, null);
+    }
+    else {
+      out.setField(3, result$35);
+    }
+
+
+
+    if (isNull$38) {
+      out.setField(4, null);
+    }
+    else {
+      out.setField(4, result$37);
+    }
+
+      c.collect(out);
+    }
+
+  }
+
+  @Override
+  public void close() throws Exception {
+
+
+  }
+}

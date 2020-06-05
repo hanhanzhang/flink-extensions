@@ -55,7 +55,6 @@ public class DynamicSqlBootstrap {
                        + ") WITH ( \n"
                        + "   'connector.type' = 'FAKE' \n"
                        + ")";
-    System.out.println(sourceTable);
     tableEnv.executeSql(sourceTable);
 
     // 输出表
@@ -69,7 +68,6 @@ public class DynamicSqlBootstrap {
                      + "    'connector.type' = 'CONSOLE' \n"
                      + ")";
     tableEnv.executeSql(sinkTable);
-    System.out.println(sinkTable);
 
     //
     String sql = "INSERT INTO t2 \n"
@@ -79,7 +77,6 @@ public class DynamicSqlBootstrap {
                + "   t1 \n"
                + "WHERE \n"
                + "   sex = '男'";
-    System.out.println(sql);
     System.out.println(tableEnv.explainSql(sql));
     tableEnv.executeSql(sql);
 
