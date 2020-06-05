@@ -6,6 +6,7 @@ import com.sdu.flink.utils.JsonUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.annotation.VisibleForTesting;
@@ -34,7 +35,11 @@ public class DynamicSqlMonitorFunction extends RichParallelSourceFunction<SqlSch
   public void run(SourceContext<SqlSchemaTuple> ctx) throws Exception {
     safeSleep();
     while (running) {
-      SqlSchemaTuple schemaTuple = create((nums++ % 3) + 1);
+      int i = (nums++ % 4);
+//      if (i != 3) {
+//        continue;
+//      }
+      SqlSchemaTuple schemaTuple = create(i);
       ctx.collect(schemaTuple);
       safeSleep();
     }
@@ -56,7 +61,7 @@ public class DynamicSqlMonitorFunction extends RichParallelSourceFunction<SqlSch
   private static SqlSchemaTuple create(int i) {
     SqlScanSchema scanSchema = new SqlScanSchema(
         Lists.newArrayList("uid", "uname", "sex", "age", "action", "timestamp"),
-        Lists.newArrayList("uname", "age", "action", "timestamp", "sex")
+        getSelectFields(i)
     );
 
     SqlCalcSchema calcSchema = new SqlCalcSchema(getCodeName(i), getCode(i));
@@ -66,6 +71,21 @@ public class DynamicSqlMonitorFunction extends RichParallelSourceFunction<SqlSch
     map.put("DynamicDataStreamCalc#DynamicStreamTableSourceScan", JsonUtils.toJson(calcSchema));
 
     return new SqlSchemaTuple(map);
+  }
+
+  private static List<String> getSelectFields(int i) {
+    switch (i) {
+      case 0:
+      case 1:
+        return Lists.newArrayList("uname", "age", "action", "timestamp", "sex");
+
+      case 2:
+      case 3:
+        return Lists.newArrayList("uname", "action", "timestamp", "sex", "age");
+
+      default:
+        throw new RuntimeException("");
+    }
   }
 
   private static String getCode(int i) {
@@ -83,14 +103,17 @@ public class DynamicSqlMonitorFunction extends RichParallelSourceFunction<SqlSch
 
   private static String getCodeName(int i) {
     switch (i) {
+      case 0:
+        return "DynamicDataStreamCalcRule$36";
+
       case 1:
         return "DynamicDataStreamCalcRule$44";
 
       case 2:
-        return "DynamicDataStreamCalcRule$77";
+        return "DynamicDataStreamCalcRule$58";
 
       case 3:
-        return "DynamicDataStreamCalcRule$59";
+        return "DynamicDataStreamCalcRule$69";
 
       default:
         throw new RuntimeException("");

@@ -1,5 +1,5 @@
 
-public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api.functions.ProcessFunction {
+public class DynamicDataStreamCalcRule$69 extends org.apache.flink.streaming.api.functions.ProcessFunction {
 
 
   final org.apache.flink.types.Row out =
@@ -8,7 +8,7 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
   private org.apache.flink.types.Row in1;
 
 
-  public DynamicDataStreamCalcRule$59() throws Exception {
+  public DynamicDataStreamCalcRule$69() throws Exception {
 
 
   }
@@ -46,23 +46,23 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
     }
 
 
-    boolean isNull$52 = (java.lang.String) in1.getField(4) == null;
-    java.lang.String result$51;
+    boolean isNull$52 = (java.lang.Integer) in1.getField(4) == null;
+    int result$51;
     if (isNull$52) {
-      result$51 = "";
+      result$51 = -1;
     }
     else {
-      result$51 = (java.lang.String) (java.lang.String) in1.getField(4);
+      result$51 = (java.lang.Integer) in1.getField(4);
     }
 
 
-    boolean isNull$42 = (java.lang.Integer) in1.getField(1) == null;
-    int result$41;
-    if (isNull$42) {
-      result$41 = -1;
+    boolean isNull$43 = (java.lang.String) in1.getField(1) == null;
+    java.lang.String result$42;
+    if (isNull$43) {
+      result$42 = "";
     }
     else {
-      result$41 = (java.lang.Integer) in1.getField(1);
+      result$42 = (java.lang.String) (java.lang.String) in1.getField(1);
     }
 
 
@@ -104,7 +104,7 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
 
 
 
-    java.lang.String result$53 = "\u652F\u4ED8";
+    int result$53 = 25;
 
     boolean isNull$55 = isNull$52 || false;
     boolean result$54;
@@ -112,7 +112,7 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
       result$54 = false;
     }
     else {
-      result$54 = result$51.compareTo(result$53) == 0;
+      result$54 = result$51 == result$53;
     }
 
 
@@ -154,7 +154,9 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
 
 
 
-    if (isNull$42) {
+    int result$41 = 25;
+
+    if (false) {
       out.setField(2, null);
     }
     else {
@@ -163,13 +165,11 @@ public class DynamicDataStreamCalcRule$59 extends org.apache.flink.streaming.api
 
 
 
-    java.lang.String result$43 = "\u652F\u4ED8";
-
-    if (false) {
+    if (isNull$43) {
       out.setField(3, null);
     }
     else {
-      out.setField(3, result$43);
+      out.setField(3, result$42);
     }
 
 

@@ -17,7 +17,7 @@ code2 对应SQL :
   FROM
      t1
   WHERE
-     sex = '男' and action = '登录'
+     sex = '男' and age = 22
 
 
 code3 对应SQL :
@@ -28,6 +28,6 @@ code3 对应SQL :
     FROM
        t1
     WHERE
-       sex = '女' and action = '支付'
+       sex = '女' and age = 25
 
 
