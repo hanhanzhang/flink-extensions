@@ -85,7 +85,6 @@ class DynamicDataStreamSink(
         .map(new DynamicSqlSinkMapFunction)
         .returns(getReturnCRowTypeInfo)
 
-    // TODO: 更新
     DataStreamConversions.convert(resultStream, logicalSchema, withChangeFlag, tpe, planner.getConfig)
   }
 

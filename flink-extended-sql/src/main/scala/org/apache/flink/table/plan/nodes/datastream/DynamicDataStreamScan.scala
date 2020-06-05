@@ -67,6 +67,7 @@ class DynamicDataStreamScan(
       }
 
     // convert DataStream
+    // TODO: fieldIdxs 应为所有字段索引
     convertToInternalRow(
       schema,
       dataStream.asInstanceOf[DataStream[Any]],

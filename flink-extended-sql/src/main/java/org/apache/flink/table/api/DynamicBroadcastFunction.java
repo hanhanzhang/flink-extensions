@@ -3,6 +3,7 @@ package org.apache.flink.table.api;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.flink.util.CollectionUtil.isNullOrEmpty;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +27,11 @@ import org.apache.flink.util.Preconditions;
 public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, SqlSchemaTuple, CRow> {
 
   // CRow[type, data]
-  private final String streamNodePath;
+  private String streamNodePath;
   private transient MapStateDescriptor<String, Tuple2<Map<String, Integer>, List<String>>> stateDesc;
 
-  private final Map<String, Integer> sourceFieldNameToIndexes;
-  private final List<String> selectFieldNames;
+  private Map<String, Integer> sourceFieldNameToIndexes;
+  private List<String> selectFieldNames;
 
   private transient Row projectRow;
   private transient Row outRow;
@@ -48,7 +49,7 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
     for (String fieldName : sourceFieldNames) {
       sourceFieldNameToIndexes.put(fieldName, index++);
     }
-    this.selectFieldNames = selectFieldNames;
+    this.selectFieldNames = new ArrayList<>(selectFieldNames);
   }
 
   @Override
@@ -63,7 +64,7 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
     );
     projectRow = new Row(selectFieldNames.size());
 
-    outRow = new Row(3);
+    outRow = new Row(2);
     outCRow = new CRow(outRow, true);
   }
 
@@ -104,8 +105,7 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
 
     // 向下发送数据
     outRow.setField(0, RowDataType.SCHEMA.name());
-    outRow.setField(1, true);
-    outRow.setField(2, JsonUtils.toJson(schemaTuple));
+    outRow.setField(1, JsonUtils.toJson(schemaTuple));
     out.collect(outCRow);
   }
 
@@ -119,8 +119,7 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
       projectRow.setField(selectFieldPos++, in.getField(index));
     }
     outRow.setField(0, RowDataType.DATA.name());
-    outRow.setField(1, true);
-    outRow.setField(2, JsonUtils.toJson(projectRow));
+    outRow.setField(1, JsonUtils.toJson(projectRow));
   }
 
 }

@@ -19,13 +19,10 @@ import org.apache.flink.table.plan.schema.RowSchema
 import org.apache.flink.table.planner.StreamPlanner
 import org.apache.flink.table.runtime.types.{CRow, CRowTypeInfo}
 import org.apache.flink.table.sources._
-import org.apache.flink.table.sources.wmstrategies.{PeriodicWatermarkAssigner, PreserveWatermarks, PunctuatedWatermarkAssigner}
 import org.apache.flink.table.types.utils.TypeConversions
 import org.apache.flink.table.types.utils.TypeConversions.fromLegacyInfoToDataType
 import org.apache.flink.table.typeutils.TimeIndicatorTypeInfo
 import org.apache.flink.table.utils.TypeMappingUtils
-
-import scala.collection.JavaConverters._
 
 
 class DynamicStreamTableSourceScan(
@@ -85,10 +82,12 @@ class DynamicStreamTableSourceScan(
   }
 
   private def translateDataStream(planner: StreamPlanner): DataStream[CRow] = {
+
     val config = planner.getConfig
     val inputDataStream = tableSource.getDataStream(planner.getExecutionEnvironment)
       .asInstanceOf[DataStream[Any]]
-    val outputSchema = new RowSchema(this.getRowType)
+    // Source输出所有字段数据
+    val outputSchema = new RowSchema(table.getRowType)
 
     val inputDataType = fromLegacyInfoToDataType(inputDataStream.getType)
     val producedDataType = tableSource.getProducedDataType
@@ -124,10 +123,10 @@ class DynamicStreamTableSourceScan(
         nameMapping
       ))
 
+    // Source输出所有字段数据
     val fieldIndexes = TypeMappingUtils.computePhysicalIndicesOrTimeAttributeMarkers(
       tableSource,
-      selectedFields.map(_.map(tableSchema.getTableColumn(_).get()).toList.asJava)
-        .getOrElse(tableSchema.getTableColumns),
+      tableSchema.getTableColumns,
       true,
       nameMapping
     )
@@ -145,19 +144,7 @@ class DynamicStreamTableSourceScan(
       TableSourceUtil.getRowtimeAttributeDescriptor(tableSource, selectedFields)
 
     val withWatermarks = if (rowtimeDesc.isDefined) {
-      val rowtimeFieldIdx = outputSchema.fieldNames.indexOf(rowtimeDesc.get.getAttributeName)
-      val watermarkStrategy = rowtimeDesc.get.getWatermarkStrategy
-      watermarkStrategy match {
-        case p: PeriodicWatermarkAssigner =>
-          val watermarkGenerator = new PeriodicWatermarkAssignerWrapper(rowtimeFieldIdx, p)
-          ingestedTable.assignTimestampsAndWatermarks(watermarkGenerator)
-        case p: PunctuatedWatermarkAssigner =>
-          val watermarkGenerator = new PunctuatedWatermarkAssignerWrapper(rowtimeFieldIdx, p)
-          ingestedTable.assignTimestampsAndWatermarks(watermarkGenerator)
-        case _: PreserveWatermarks =>
-          // The watermarks have already been provided by the underlying DataStream.
-          ingestedTable
-      }
+      throw new RuntimeException("unsupported")
     } else {
       // No need to generate watermarks if no rowtime attribute is specified.
       ingestedTable
@@ -185,7 +172,8 @@ class DynamicStreamTableSourceScan(
     val dataStream = translateDataStream(planner)
 
     val uniqueNodeName = DynamicStreamNameUtils.getStreamNodeUniqueName(this)
-    val sourceFieldNames = deriveRowType().getFieldNames
+    val sourceFieldNames = table.getRowType.getFieldNames
+    val selectFieldNames = deriveRowType().getFieldNames
 
     val returnTypeInfo = CRowTypeInfo(
       new RowTypeInfo(
@@ -195,7 +183,7 @@ class DynamicStreamTableSourceScan(
     )
 
     dataStream.connect(broadcastStream)
-      .process(new DynamicBroadcastFunction(uniqueNodeName, sourceFieldNames, sourceFieldNames))
+      .process(new DynamicBroadcastFunction(uniqueNodeName, sourceFieldNames, selectFieldNames))
       .returns(returnTypeInfo)
   }
 }

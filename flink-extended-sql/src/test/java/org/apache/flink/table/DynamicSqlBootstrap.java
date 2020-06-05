@@ -74,7 +74,9 @@ public class DynamicSqlBootstrap {
                + "SELECT \n"
                + "   uname, sex, age, action, `timestamp` \n"
                + "FROM \n"
-               + "   t1";
+               + "   t1 \n"
+               + "WHERE \n"
+               + "   sex = '男'";
     System.out.println(tableEnv.explainSql(sql));
     tableEnv.executeSql(sql);
 

@@ -16,10 +16,6 @@
         <module>flink-extended-sql</module>
     </modules>
 
-    <properties>
-        <flink.version>1.9.0</flink.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
