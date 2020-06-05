@@ -1,6 +1,7 @@
 package org.apache.flink.table.plan.nodes.datastream
 
-import java.util
+import java.lang.{String => JString}
+import java.util.{List => JList, Map => JMap}
 
 import org.apache.calcite.plan.{RelOptCluster, RelOptSchema, RelTraitSet}
 import org.apache.calcite.prepare.RelOptTableImpl
@@ -10,9 +11,10 @@ import org.apache.calcite.rel.{RelNode, RelWriter}
 import org.apache.calcite.rex.RexNode
 import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.{TypeInformation, Types}
-import org.apache.flink.api.java.typeutils.RowTypeInfo
+import org.apache.flink.api.java.tuple.Tuple2
+import org.apache.flink.api.java.typeutils.{RowTypeInfo, TupleTypeInfo}
 import org.apache.flink.streaming.api.datastream.DataStream
-import org.apache.flink.table.api.{DynamicBroadcastFunction, DynamicStreamNameUtils, DynamicSqlMonitorFunction}
+import org.apache.flink.table.api.{DynamicBroadcastFunction, DynamicSqlMonitorFunction, DynamicStreamNameUtils}
 import org.apache.flink.table.expressions.Cast
 import org.apache.flink.table.plan.schema.RowSchema
 import org.apache.flink.table.planner.StreamPlanner
@@ -77,8 +79,15 @@ class DynamicDataStreamScan(
     val env = planner.getExecutionEnvironment
     // broadcast stream
     val sqlSchemaStream = env.addSource(new DynamicSqlMonitorFunction)
-    val stateDescriptor = new MapStateDescriptor[Void, util.Map[String, String]]("BroadcastSqlProjectSchemaState",
-      Types.VOID, Types.MAP(Types.STRING, Types.STRING))
+    val valueType = new TupleTypeInfo[Tuple2[JMap[JString, JString], JList[JString]]](
+      Types.MAP(Types.STRING, Types.INT),
+      Types.LIST(Types.STRING)
+    )
+    val stateDescriptor = new MapStateDescriptor(
+      "BroadcastState",
+      Types.STRING,
+      valueType
+    )
     val broadcastStream = sqlSchemaStream.broadcast(stateDescriptor)
 
     // source stream

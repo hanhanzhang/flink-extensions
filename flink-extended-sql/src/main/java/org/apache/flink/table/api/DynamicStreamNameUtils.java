@@ -9,7 +9,17 @@ public class DynamicStreamNameUtils {
   }
 
   public static String getStreamNodeUniqueName(RelNode relNode) {
-    throw new RuntimeException();
+    if (relNode.getInputs() == null || relNode.getInputs().isEmpty()) {
+      return relNode.getClass().getSimpleName();
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(relNode.getClass().getSimpleName());
+    for (RelNode node : relNode.getInputs()) {
+      sb.append("#");
+      sb.append(getStreamNodeUniqueName(node));
+    }
+    return sb.toString();
   }
 
 }

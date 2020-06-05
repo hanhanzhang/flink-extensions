@@ -1,5 +1,6 @@
 package org.apache.flink.table.api;
 
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.flink.util.CollectionUtil.isNullOrEmpty;
 
 import java.util.HashMap;
@@ -40,8 +41,8 @@ public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, Sql
       List<String> sourceFieldNames,
       List<String> selectFieldNames) {
     this.streamNodePath = Objects.requireNonNull(streamNodePath);
-    Preconditions.checkArgument(isNullOrEmpty(sourceFieldNames));
-    Preconditions.checkArgument(isNullOrEmpty(selectFieldNames));
+    Preconditions.checkArgument(isNotEmpty(sourceFieldNames));
+    Preconditions.checkArgument(isNotEmpty(selectFieldNames));
     sourceFieldNameToIndexes = new HashMap<>();
     int index = 0;
     for (String fieldName : sourceFieldNames) {
