@@ -12,7 +12,7 @@ import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.{TypeInformation, Types}
 import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.streaming.api.datastream.DataStream
-import org.apache.flink.table.api.{DynamicBroadcastProcessFunction, DynamicSqlRelNodeNameUtils, DynamicSqlSourceFunction}
+import org.apache.flink.table.api.{DynamicBroadcastFunction, DynamicStreamNameUtils, DynamicSqlMonitorFunction}
 import org.apache.flink.table.expressions.Cast
 import org.apache.flink.table.plan.schema.RowSchema
 import org.apache.flink.table.planner.StreamPlanner
@@ -76,7 +76,7 @@ class DynamicDataStreamScan(
   override def translateToPlan(planner: StreamPlanner): DataStream[CRow] = {
     val env = planner.getExecutionEnvironment
     // broadcast stream
-    val sqlSchemaStream = env.addSource(new DynamicSqlSourceFunction)
+    val sqlSchemaStream = env.addSource(new DynamicSqlMonitorFunction)
     val stateDescriptor = new MapStateDescriptor[Void, util.Map[String, String]]("BroadcastSqlProjectSchemaState",
       Types.VOID, Types.MAP(Types.STRING, Types.STRING))
     val broadcastStream = sqlSchemaStream.broadcast(stateDescriptor)
@@ -84,7 +84,8 @@ class DynamicDataStreamScan(
     // source stream
     val dataStream = translateDataStream(planner)
 
-    val uniqueNodeName = DynamicSqlRelNodeNameUtils.getStreamNodeUniqueName(this)
+    val uniqueNodeName = DynamicStreamNameUtils.getStreamNodeUniqueName(this)
+    val sourceFieldNames = deriveRowType().getFieldNames
 
     val returnTypeInfo = CRowTypeInfo(
       new RowTypeInfo(
@@ -94,7 +95,7 @@ class DynamicDataStreamScan(
     )
 
     dataStream.connect(broadcastStream)
-      .process(new DynamicBroadcastProcessFunction(uniqueNodeName, null, null))
+      .process(new DynamicBroadcastFunction(uniqueNodeName, sourceFieldNames, sourceFieldNames))
       .returns(returnTypeInfo)
   }
 

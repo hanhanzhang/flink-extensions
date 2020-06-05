@@ -4,13 +4,15 @@ import org.apache.calcite.plan.{RelOptCluster, RelTraitSet}
 import org.apache.calcite.rel.RelNode
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.dag.Transformation
+import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.streaming.api.datastream.{DataStream, DataStreamSink => StreamingDataStreamSink}
 import org.apache.flink.table.api.{TableException, TableSchema}
 import org.apache.flink.table.calcite.FlinkTypeFactory
 import org.apache.flink.table.plan.nodes.Sink
 import org.apache.flink.table.plan.util.UpdatingPlanChecker
 import org.apache.flink.table.planner.{DataStreamConversions, StreamPlanner}
-import org.apache.flink.table.runtime.types.CRow
+import org.apache.flink.table.runtime.types.{CRow, CRowTypeInfo}
+import org.apache.flink.table.runtime.{DynamicSqlSinkFilterFunction, DynamicSqlSinkMapFunction}
 import org.apache.flink.table.sinks.{AppendStreamTableSink, RetractStreamTableSink, TableSink, UpsertStreamTableSink}
 import org.apache.flink.table.types.utils.TypeConversions
 
@@ -77,8 +79,14 @@ class DynamicDataStreamSink(
            tpe: TypeInformation[A],
            withChangeFlag: Boolean): DataStream[A] = {
     val dataStream = getInput().asInstanceOf[DataStreamRel].translateToPlan(planner)
+
+    //
+    val resultStream = dataStream.filter(new DynamicSqlSinkFilterFunction)
+        .map(new DynamicSqlSinkMapFunction)
+        .returns(getReturnCRowTypeInfo)
+
     // TODO: 更新
-    DataStreamConversions.convert(dataStream, logicalSchema, withChangeFlag, tpe, planner.getConfig)
+    DataStreamConversions.convert(resultStream, logicalSchema, withChangeFlag, tpe, planner.getConfig)
   }
 
   private def getTableSchema: TableSchema = {
@@ -87,6 +95,15 @@ class DynamicDataStreamSink(
       .map(TypeConversions.fromLegacyInfoToDataType)
       .toArray
     TableSchema.builder().fields(sink.getTableSchema.getFieldNames, fieldTypes).build()
+  }
+
+  private def getReturnCRowTypeInfo: CRowTypeInfo = {
+    val fieldNames = getInput.getRowType.getFieldList.asScala.map(_.getName)
+      .toArray
+    val fieldTypes = getInput.getRowType.getFieldList.asScala.map(_.getType)
+      .map(FlinkTypeFactory.toTypeInfo)
+      .toArray
+    CRowTypeInfo(new RowTypeInfo(fieldTypes, fieldNames))
   }
 
 }

@@ -2,9 +2,9 @@ package org.apache.flink.table.api;
 
 import org.apache.calcite.rel.RelNode;
 
-public class DynamicSqlRelNodeNameUtils {
+public class DynamicStreamNameUtils {
 
-  private DynamicSqlRelNodeNameUtils() {
+  private DynamicStreamNameUtils() {
 
   }
 

@@ -6,6 +6,7 @@ import org.apache.calcite.rel.core.Calc
 import org.apache.calcite.rex.RexProgram
 import org.apache.flink.streaming.api.datastream.DataStream
 import org.apache.flink.streaming.api.functions.ProcessFunction
+import org.apache.flink.table.api.DynamicStreamNameUtils
 import org.apache.flink.table.calcite.RelTimeIndicatorConverter
 import org.apache.flink.table.codegen.FunctionCodeGenerator
 import org.apache.flink.table.plan.schema.RowSchema
@@ -78,6 +79,7 @@ class DynamicDataStreamCalc(
     val inputParallelism = inputDataStream.getParallelism
 
     val processFunc = new DynamicCRowProcessRunner(
+      DynamicStreamNameUtils.getStreamNodeUniqueName(this),
       genFunction.name,
       genFunction.code)
 

@@ -8,14 +8,15 @@ import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.table.codegen.Compiler
 import org.apache.flink.table.runtime.types.{CRow, CRowTypeInfo}
-import org.apache.flink.table.types.RowDataType
 import org.apache.flink.table.types.schema.SqlCalcSchema
+import org.apache.flink.table.types.{RowDataType, SqlSchemaTuple}
 import org.apache.flink.table.util.Logging
 import org.apache.flink.table.utils.JsonUtils
 import org.apache.flink.types.Row
 import org.apache.flink.util.Collector
 
 class DynamicCRowProcessRunner(
+    streamUniqueName: String,
     name: String,
     code: String)
   extends ProcessFunction[CRow, CRow]
@@ -53,12 +54,12 @@ class DynamicCRowProcessRunner(
     cRowWrapper.setRowType(rowType)
 
     if (rowType.equals(RowDataType.SCHEMA.name())) {
-      val schema: String = value.getField(1).asInstanceOf
+      val schema: String = value.getField(2).asInstanceOf
       FunctionUtils.closeFunction(function)
       function = generateFunction(schema)
       cRowWrapper.collect(schema)
     } else if (rowType.equals(RowDataType.DATA.name())) {
-      val data = value.getField(1).asInstanceOf
+      val data = value.getField(2).asInstanceOf
       val columns = JsonUtils.fromJson(data, classOf[Row])
       function.processElement(
         columns,
@@ -81,7 +82,8 @@ class DynamicCRowProcessRunner(
   }
 
   private def generateFunction(schema: String) : ProcessFunction[Row, Row] = {
-    val calc = JsonUtils.fromJson(schema, classOf[SqlCalcSchema])
+    val schemaTuple = JsonUtils.fromJson(schema, classOf[SqlSchemaTuple])
+    val calc = schemaTuple.getStreamNodeSchema(streamUniqueName, classOf[SqlCalcSchema])
     val name = calc.getName
     val code = calc.getCode
     LOG.info(s"Compiling ProcessFunction: $calc \n\n Code:\n$code")
@@ -92,4 +94,5 @@ class DynamicCRowProcessRunner(
     FunctionUtils.openFunction(function, parameters)
     function
   }
+
 }

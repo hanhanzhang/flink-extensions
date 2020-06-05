@@ -22,7 +22,7 @@ import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
-public class DynamicBroadcastProcessFunction extends BroadcastProcessFunction<CRow, SqlSchemaTuple, CRow> {
+public class DynamicBroadcastFunction extends BroadcastProcessFunction<CRow, SqlSchemaTuple, CRow> {
 
   // CRow[type, data]
   private final String streamNodePath;
@@ -31,7 +31,11 @@ public class DynamicBroadcastProcessFunction extends BroadcastProcessFunction<CR
   private final Map<String, Integer> sourceFieldNameToIndexes;
   private final List<String> selectFieldNames;
 
-  public DynamicBroadcastProcessFunction(
+  private transient Row projectRow;
+  private transient Row outRow;
+  private transient CRow outCRow;
+
+  public DynamicBroadcastFunction(
       String streamNodePath,
       List<String> sourceFieldNames,
       List<String> selectFieldNames) {
@@ -56,6 +60,10 @@ public class DynamicBroadcastProcessFunction extends BroadcastProcessFunction<CR
             Types.LIST(Types.STRING)
         )
     );
+    projectRow = new Row(selectFieldNames.size());
+
+    outRow = new Row(3);
+    outCRow = new CRow(outRow, true);
   }
 
   @Override
@@ -72,7 +80,8 @@ public class DynamicBroadcastProcessFunction extends BroadcastProcessFunction<CR
       sourceFieldToIndexes = rules.f0;
       selectFields = rules.f1;
     }
-    out.collect(buildOutRow(value.row(), sourceFieldToIndexes, selectFields));
+    buildOutRow(value.row(), sourceFieldToIndexes, selectFields);
+    out.collect(outCRow);
   }
 
   @Override
@@ -90,15 +99,27 @@ public class DynamicBroadcastProcessFunction extends BroadcastProcessFunction<CR
       sourceFieldNameToIndexes.put(fieldName, index++);
     }
     broadcastState.put(streamNodePath, Tuple2.of(sourceFieldNameToIndexes, scan.getSelectFieldNames()));
+    projectRow = new Row(scan.getSelectFieldNames().size());
 
     // 向下发送数据
-    Row outRow = Row.of(RowDataType.SCHEMA.name(), JsonUtils.toJson(schemaTuple));
-    out.collect(new CRow(outRow, true));
+    outRow.setField(0, RowDataType.SCHEMA.name());
+    outRow.setField(1, true);
+    outRow.setField(2, JsonUtils.toJson(schemaTuple));
+    out.collect(outCRow);
   }
 
-  private CRow buildOutRow(Row in, Map<String, Integer> sourceFieldToIndexes, List<String> selectFields) {
-    // TODO: 2020-06-04
-    throw new RuntimeException("");
+  private void buildOutRow(Row in, Map<String, Integer> sourceFieldToIndexes, List<String> selectFields) {
+    int selectFieldPos = 0;
+    for (String selectField : selectFields) {
+      Integer index = sourceFieldToIndexes.get(selectField);
+      if (index == null) {
+        throw new RuntimeException("stream source can't find field: " + selectField);
+      }
+      projectRow.setField(selectFieldPos++, in.getField(index));
+    }
+    outRow.setField(0, RowDataType.DATA.name());
+    outRow.setField(1, true);
+    outRow.setField(2, JsonUtils.toJson(projectRow));
   }
 
 }
