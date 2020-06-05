@@ -1,5 +1,5 @@
 
-public class DynamicDataStreamCalcRule$55 extends org.apache.flink.streaming.api.functions.ProcessFunction {
+public class DynamicDataStreamCalcRule$77 extends org.apache.flink.streaming.api.functions.ProcessFunction {
 
 
   final org.apache.flink.types.Row out =
@@ -8,7 +8,7 @@ public class DynamicDataStreamCalcRule$55 extends org.apache.flink.streaming.api
   private org.apache.flink.types.Row in1;
 
 
-  public DynamicDataStreamCalcRule$55() throws Exception {
+  public DynamicDataStreamCalcRule$77() throws Exception {
 
 
   }
@@ -26,157 +26,159 @@ public class DynamicDataStreamCalcRule$55 extends org.apache.flink.streaming.api
   public void processElement(Object _in1, org.apache.flink.streaming.api.functions.ProcessFunction.Context ctx, org.apache.flink.util.Collector c) throws Exception {
     in1 = (org.apache.flink.types.Row) _in1;
 
-    boolean isNull$41 = (java.lang.String) in1.getField(2) == null;
-    java.lang.String result$40;
-    if (isNull$41) {
-      result$40 = "";
-    }
-    else {
-      result$40 = (java.lang.String) (java.lang.String) in1.getField(2);
-    }
-
-
-    boolean isNull$36 = (java.lang.String) in1.getField(0) == null;
-    java.lang.String result$35;
-    if (isNull$36) {
-      result$35 = "";
-    }
-    else {
-      result$35 = (java.lang.String) (java.lang.String) in1.getField(0);
-    }
-
-
-    boolean isNull$45 = (java.lang.String) in1.getField(4) == null;
-    java.lang.String result$44;
+    boolean isNull$45 = (java.lang.Long) in1.getField(2) == null;
+    long result$44;
     if (isNull$45) {
-      result$44 = "";
+      result$44 = -1L;
     }
     else {
-      result$44 = (java.lang.String) (java.lang.String) in1.getField(4);
+      result$44 = (java.lang.Long) in1.getField(2);
     }
 
 
-    boolean isNull$39 = (java.lang.Integer) in1.getField(1) == null;
-    int result$38;
+    boolean isNull$39 = (java.lang.String) in1.getField(0) == null;
+    java.lang.String result$38;
     if (isNull$39) {
-      result$38 = -1;
+      result$38 = "";
     }
     else {
-      result$38 = (java.lang.Integer) in1.getField(1);
+      result$38 = (java.lang.String) (java.lang.String) in1.getField(0);
     }
 
 
-    boolean isNull$43 = (java.lang.Long) in1.getField(3) == null;
-    long result$42;
-    if (isNull$43) {
-      result$42 = -1L;
-    }
-    else {
-      result$42 = (java.lang.Long) in1.getField(3);
-    }
-
-
-
-
-
-
-
-
-
-    java.lang.String result$46 = "\u5973";
-
-    boolean isNull$48 = isNull$45 || false;
-    boolean result$47;
-    if (isNull$48) {
-      result$47 = false;
+    boolean isNull$52 = (java.lang.String) in1.getField(4) == null;
+    java.lang.String result$51;
+    if (isNull$52) {
+      result$51 = "";
     }
     else {
-      result$47 = result$44.compareTo(result$46) == 0;
+      result$51 = (java.lang.String) (java.lang.String) in1.getField(4);
     }
 
 
-    boolean result$52 = false;
-    boolean isNull$53 = false;
-    if (!isNull$48 && !result$47) {
+    boolean isNull$42 = (java.lang.Integer) in1.getField(1) == null;
+    int result$41;
+    if (isNull$42) {
+      result$41 = -1;
+    }
+    else {
+      result$41 = (java.lang.Integer) in1.getField(1);
+    }
+
+
+    boolean isNull$47 = (java.lang.String) in1.getField(3) == null;
+    java.lang.String result$46;
+    if (isNull$47) {
+      result$46 = "";
+    }
+    else {
+      result$46 = (java.lang.String) (java.lang.String) in1.getField(3);
+    }
+
+
+
+
+
+
+
+
+
+    java.lang.String result$48 = "\u7537";
+
+    boolean isNull$50 = isNull$47 || false;
+    boolean result$49;
+    if (isNull$50) {
+      result$49 = false;
+    }
+    else {
+      result$49 = result$46.compareTo(result$48) == 0;
+    }
+
+
+    boolean result$56 = false;
+    boolean isNull$57 = false;
+    if (!isNull$50 && !result$49) {
       // left expr is false, result is always false
       // skip right expr
     } else {
 
 
 
-    int result$49 = 22;
+    java.lang.String result$53 = "\u767B\u5F55";
 
-    boolean isNull$51 = isNull$39 || false;
-    boolean result$50;
-    if (isNull$51) {
-      result$50 = false;
+    boolean isNull$55 = isNull$52 || false;
+    boolean result$54;
+    if (isNull$55) {
+      result$54 = false;
     }
     else {
-      result$50 = result$38 >= result$49;
+      result$54 = result$51.compareTo(result$53) == 0;
     }
 
 
-      if (isNull$48) {
+      if (isNull$50) {
         // left is null (unknown)
-        if (isNull$51 || result$50) {
-          isNull$53 = true;
+        if (isNull$55 || result$54) {
+          isNull$57 = true;
         }
       } else {
         // left is true
-        if (isNull$51) {
-          isNull$53 = true;
-        } else if (result$50) {
-          result$52 = true;
+        if (isNull$55) {
+          isNull$57 = true;
+        } else if (result$54) {
+          result$56 = true;
         }
       }
     }
 
-    if (result$52) {
+    if (result$56) {
 
 
-    if (isNull$36) {
+    if (isNull$39) {
       out.setField(0, null);
     }
     else {
-      out.setField(0, result$35);
+      out.setField(0, result$38);
     }
 
 
 
-    java.lang.String result$37 = "\u5973";
+    java.lang.String result$40 = "\u7537";
 
     if (false) {
       out.setField(1, null);
     }
     else {
-      out.setField(1, result$37);
+      out.setField(1, result$40);
     }
 
 
 
-    if (isNull$39) {
+    if (isNull$42) {
       out.setField(2, null);
     }
     else {
-      out.setField(2, result$38);
+      out.setField(2, result$41);
     }
 
 
 
-    if (isNull$41) {
+    java.lang.String result$43 = "\u767B\u5F55";
+
+    if (false) {
       out.setField(3, null);
     }
     else {
-      out.setField(3, result$40);
+      out.setField(3, result$43);
     }
 
 
 
-    if (isNull$43) {
+    if (isNull$45) {
       out.setField(4, null);
     }
     else {
-      out.setField(4, result$42);
+      out.setField(4, result$44);
     }
 
       c.collect(out);

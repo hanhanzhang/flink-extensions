@@ -84,13 +84,13 @@ public class DynamicSqlMonitorFunction extends RichParallelSourceFunction<SqlSch
   private static String getCodeName(int i) {
     switch (i) {
       case 1:
-        return "DynamicDataStreamCalcRule$54";
+        return "DynamicDataStreamCalcRule$44";
 
       case 2:
-        return "DynamicDataStreamCalcRule$55";
+        return "DynamicDataStreamCalcRule$77";
 
       case 3:
-        return "DynamicDataStreamCalcRule$44";
+        return "DynamicDataStreamCalcRule$59";
 
       default:
         throw new RuntimeException("");

@@ -86,7 +86,7 @@ class DynamicCRowProcessRunner(
     val calc = schemaTuple.getStreamNodeSchema(streamUniqueName, classOf[SqlCalcSchema])
     val name = calc.getName
     val code = calc.getCode
-    LOG.info(s"Compiling ProcessFunction: $calc \n\n Code:\n$code")
+    LOG.info(s"Compiling ProcessFunction: $name \n\n Code:\n$code")
     val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code)
     LOG.info("Instantiating ProcessFunction.")
     val function = clazz.newInstance()
