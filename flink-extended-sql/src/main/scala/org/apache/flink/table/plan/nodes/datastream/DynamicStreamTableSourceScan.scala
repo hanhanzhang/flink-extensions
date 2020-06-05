@@ -32,7 +32,7 @@ class DynamicStreamTableSourceScan(
     tableSchema: TableSchema,
     tableSource: StreamTableSource[_],
     selectedFields: Option[Array[Int]])
-  extends PhysicalTableSourceScan(
+  extends PhysicalTableSourceScan (
     cluster,
     traitSet,
     table,
@@ -186,4 +186,5 @@ class DynamicStreamTableSourceScan(
       .process(new DynamicBroadcastFunction(uniqueNodeName, sourceFieldNames, selectFieldNames))
       .returns(returnTypeInfo)
   }
+
 }
