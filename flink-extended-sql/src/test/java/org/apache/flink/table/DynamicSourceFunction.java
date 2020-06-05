@@ -27,10 +27,17 @@ public class DynamicSourceFunction extends RichParallelSourceFunction<Row> {
     this.peoples.add(Tuple3.of("张小龙", "男", 20));
     this.peoples.add(Tuple3.of("王小丽", "女", 21));
     this.peoples.add(Tuple3.of("李连杰", "男", 22));
+    this.peoples.add(Tuple3.of("孙文斌", "男", 22));
+    this.peoples.add(Tuple3.of("龚志斌", "男", 22));
+    this.peoples.add(Tuple3.of("李承龙", "男", 22));
+    this.peoples.add(Tuple3.of("王晓虎", "男", 22));
     this.peoples.add(Tuple3.of("刘丽丽", "女", 23));
     this.peoples.add(Tuple3.of("刘萌萌", "女", 24));
     this.peoples.add(Tuple3.of("李明明", "男", 25));
     this.peoples.add(Tuple3.of("孙梦莎", "女", 25));
+    this.peoples.add(Tuple3.of("王小雅", "女", 25));
+    this.peoples.add(Tuple3.of("刘梦霞", "女", 25));
+    this.peoples.add(Tuple3.of("孙梦霞", "女", 25));
     this.peoples.add(Tuple3.of("孙虎龙", "男", 27));
     this.peoples.add(Tuple3.of("孙珊珊", "女", 28));
 
