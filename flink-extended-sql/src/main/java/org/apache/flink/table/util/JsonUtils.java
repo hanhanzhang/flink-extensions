@@ -1,4 +1,4 @@
-package com.sdu.flink.utils;
+package org.apache.flink.table.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -1,6 +1,6 @@
 package org.apache.flink.table.types;
 
-import com.sdu.flink.utils.JsonUtils;
+import org.apache.flink.table.util.JsonUtils;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;

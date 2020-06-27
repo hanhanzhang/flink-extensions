@@ -1,6 +1,5 @@
 package org.apache.flink.table.runtime
 
-import com.sdu.flink.utils.JsonUtils
 import org.apache.flink.api.common.functions.util.FunctionUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.{ResultTypeQueryable, RowTypeInfo}
@@ -11,7 +10,7 @@ import org.apache.flink.table.codegen.Compiler
 import org.apache.flink.table.runtime.types.{CRow, CRowTypeInfo}
 import org.apache.flink.table.types.schema.SqlCalcSchema
 import org.apache.flink.table.types.{RowDataType, SqlSchemaTuple}
-import org.apache.flink.table.util.Logging
+import org.apache.flink.table.util.{JsonUtils, Logging}
 import org.apache.flink.types.Row
 import org.apache.flink.util.Collector
 

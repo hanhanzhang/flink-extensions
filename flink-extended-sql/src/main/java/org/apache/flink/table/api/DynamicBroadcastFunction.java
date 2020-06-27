@@ -2,7 +2,7 @@ package org.apache.flink.table.api;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
-import com.sdu.flink.utils.JsonUtils;
+import org.apache.flink.table.util.JsonUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

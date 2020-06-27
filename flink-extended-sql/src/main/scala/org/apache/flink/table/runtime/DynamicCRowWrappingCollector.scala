@@ -1,6 +1,6 @@
 package org.apache.flink.table.runtime
 
-import com.sdu.flink.utils.JsonUtils
+import org.apache.flink.table.util.JsonUtils
 import org.apache.flink.types.Row
 
 class DynamicCRowWrappingCollector extends CRowWrappingCollector {

@@ -2,7 +2,7 @@ package org.apache.flink.table.api;
 
 import static java.lang.String.format;
 
-import com.sdu.flink.utils.JsonUtils;
+import org.apache.flink.table.util.JsonUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;

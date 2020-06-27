@@ -1,9 +1,9 @@
 package org.apache.flink.table.runtime
 
-import com.sdu.flink.utils.JsonUtils
 import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.table.runtime.types.CRow
+import org.apache.flink.table.util.JsonUtils
 import org.apache.flink.types.Row
 
 class DynamicSqlSinkMapFunction extends RichMapFunction[CRow, CRow] {
